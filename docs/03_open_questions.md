@@ -7,10 +7,11 @@
 | Q-03 | **ค่าที่สั้นกว่า 10 หรือมีช่องว่าง** | ✅ **ปิด 2026-10-05** — ไม่ผ่าน |
 | Q-04 | **logic ของ Custom Logic** | ✅ **ปิด 2026-10-05** — Incoming = `batch_in` · ผ่านแล้ว `batch_out` = batch ล่าสุดของ material +1 จาก CDS · ไม่เคยมี `NNNN = 0001` · ทำ method generate เพิ่ม (รายละเอียด Q-07 ถึง Q-12) |
 | Q-05 | **type ของ parameter** | ✅ **ปิด 2026-10-05** — `CHARG_D` release C1 แล้ว (ผู้ใช้เช็คใน ADT) |
-| Q-06 | **"ปีปัจจุบัน" ใช้วันที่ timezone ไหน** — `cl_abap_context_info=>get_system_date( )` เป็น UTC ช่วง 00:00-07:00 เวลาไทยของวันที่ 1 ม.ค. จะยังเป็นปีเก่า · ทางเลือก: วันที่ตาม timezone ของ user หรือ fix `UTC+7` | ผู้ใช้ | ⬜ |
-| Q-07 | **`YYMMDD` ของ `batch_out` มาจากไหน** — ใช้ `YYMMDD` ของ `batch_in` หรือวันที่ปัจจุบัน | ผู้ใช้ | ⬜ |
-| Q-08 | **running number นับแยกอย่างไร** — ต่อ material ต่อวัน (หา max `NNNN` ที่ขึ้นต้นด้วย `YYMMDD` เดียวกัน) หรือต่อ material ต่อเนื่องข้ามวัน | ผู้ใช้ | ⬜ |
-| Q-09 | **CDS ที่ใช้และระดับของ batch** — `I_Batch` (Material + Plant + Batch) หรือ `I_BatchDistinct` (Material + Batch) · ต้องกรอง plant ด้วยหรือไม่ · batch เก่าที่ไม่ตรง format ให้ข้าม | ผู้ใช้เช็คใน ADT | ⬜ |
-| Q-10 | **`NNNN` ถึง 9999 แล้ว** — ทำอย่างไร (error / คง `batch_in`) | ผู้ใช้ | ⬜ |
-| Q-11 | **`batch_in` ไม่ผ่าน format** — `batch_out` ควรเป็นอะไร (ไม่แตะ = ใช้ `batch_in` ตามปกติ?) | ผู้ใช้ | ⬜ |
-| Q-12 | **เลขชนกัน** — batch ที่สร้างใน transaction เดียวกันหรือพร้อมกันหลาย user ยังไม่ commit จึงไม่เห็นใน CDS อาจได้เลขซ้ำ · ยอมรับความเสี่ยงได้หรือไม่ | ผู้ใช้ + ฟังก์ชันนอล | ⬜ |
+| Q-06 | **"ปีปัจจุบัน" ใช้วันที่ timezone ไหน** | ✅ **ปิด 2026-10-05** — fix `UTC+7` ตายตัว (system time UTC ตั้งแต่ 17:00 ถือเป็นวันถัดไป) |
+| Q-07 | **`YYMMDD` ของ `batch_out` มาจากไหน** | ✅ **ปิด 2026-10-05** — วันที่ปัจจุบัน (UTC+7) |
+| Q-08 | **running number นับแยกอย่างไร** | ✅ **ปิด 2026-10-05** — หา `NNNN` สูงสุดของ material ที่ขึ้นต้นด้วย `YYMMDD` เดียวกัน แล้ว +1 |
+| Q-09 | **CDS ที่ใช้** | ✅ **ปิด 2026-10-05** — `I_Batch` (release C1 ผู้ใช้เช็คแล้ว) · การกรอง plant แยกไป Q-13 |
+| Q-10 | **`NNNN` ถึง 9999 แล้ว** | ✅ **ปิด 2026-10-05** — skip ไม่แตะ `batch_out` (business จริงไม่เกิน 9999) |
+| Q-11 | **`batch_in` ไม่ผ่าน format** | ✅ **ปิด 2026-10-05** — ไม่แตะ `batch_out` |
+| Q-12 | **เลขชนกัน** (batch ที่ยังไม่ commit ไม่เห็นใน CDS) | ✅ **ปิด 2026-10-05** — ผู้ใช้ยอมรับความเสี่ยง |
+| Q-13 | **กรอง plant ตอนหา batch ล่าสุดหรือไม่** — `I_Batch` มี key `Material` + `BatchIdentifyingPlant` + `Batch` · ถ้า batch level เป็นระดับ material จะมี plant ว่าง · ถ้าระดับ plant ต้องกรองด้วย `batch_allocation-plant` | ผู้ใช้ | ⬜ |
