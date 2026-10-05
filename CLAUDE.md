@@ -22,6 +22,7 @@
 
 Custom Logic (key user) เรียก class ของ developer extensibility ได้ก็ต่อเมื่อ class นั้น
 **release เป็น API state C1 และติ๊ก "Use in Key User Apps"** แล้วเท่านั้น
+- API state ถูก serialize เป็นไฟล์ APIS `src/zcl_zime001<ช่องว่าง>clas.apis.xml` ชื่อมีช่องว่างเพราะ SAP ใช้ key แบบ padded ห้าม rename
 - ทุกครั้งที่เปลี่ยน signature ของ method ที่ Custom Logic ใช้ ต้องระวัง เพราะ C1 ห้ามเปลี่ยนแบบ incompatible
 - SELECT ใน class ที่ Custom Logic เรียก ใช้ `WITH PRIVILEGED ACCESS` **เสมอ** (ผู้ใช้สั่ง 2026-10-05)
   เหตุผล: เป็น logic ของระบบ ถ้าติดสิทธิ์ของ user ที่สร้าง batch จะอ่านข้อมูลไม่ครบ
