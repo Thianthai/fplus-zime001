@@ -10,9 +10,24 @@ Key user object ไม่ขึ้น git — เก็บสำเนา code �
 | Filter | ไม่จำกัด (Q-16 · 2026-10-05) |
 | เรียก | `ZCL_ZIME001` (C1 · Use in Key User Apps) |
 
-## Code ปัจจุบัน (ส่ง 2026-10-05 · Phase 3 + log ชั่วคราว R-02)
+## Code ปัจจุบัน (ส่ง 2026-10-05 · ช่วงเก็บข้อมูล R-02)
 
-ตอนลบ log ก่อน transport: ลบบรรทัด `lv_batch_out_before` และการเรียก `zcl_zime001_log=>write` ออก ที่เหลือคือ code ของ Phase 3
+เก็บ log อย่างเดียว **ไม่ validate และไม่แก้ `batch_out`** จนกว่าจะออกแบบ R-01 เสร็จ
+
+```abap
+" ZIME001 Automatic Batch Creation
+" ช่วงเก็บข้อมูล: บันทึกค่าที่ BAdI ได้รับลง table ZIME001_LOG อย่างเดียว
+" ไม่ validate และไม่แก้ batch_out
+" ลบส่วนนี้พร้อม class ZCL_ZIME001_LOG และ table ZIME001_LOG ก่อน transport
+zcl_zime001_log=>write( is_batch_allocation = CORRESPONDING #( batch_allocation )
+                        iv_batch_in         = batch_in
+                        iv_batch_out_before = batch_out
+                        iv_batch_out_after  = batch_out ).
+```
+
+## Code ของ Phase 3 + log (ยังไม่ใช้ — เก็บไว้อ้างอิงหลังออกแบบ R-01)
+
+ฉบับนี้ทั้ง validate และแก้ `batch_out` · ถูกแทนด้วยฉบับเก็บ log อย่างเดียวด้านบน (ผู้ใช้สั่ง 2026-10-05)
 
 ```abap
 " ZIME001 Automatic Batch Creation
