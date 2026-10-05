@@ -15,5 +15,6 @@
 
 | Object | ชนิด | ไฟล์ | Status |
 |---|---|---|---|
-| `ZIME001_LOG` | Database table — 1 row ต่อ 1 call ของ BAdI | `src/zime001_log.tabl.xml` | 🟨 ส่ง code 2026-10-05 |
-| `ZCL_ZIME001_LOG` | Class — `write( )` INSERT ลง `ZIME001_LOG` · release C1 + Use in Key User Apps | `src/zcl_zime001_log.clas.abap` | 🟨 ส่ง code 2026-10-05 |
+| `ZIME001_LOG` | Database table — 1 row ต่อ 1 call ของ BAdI | `src/zime001_log.tabl.xml` | ✅ `36cd138` (2026-10-05) · 43 field ตรงตาม design · `invertedIndividualIndex` |
+| `ZCL_ZIME001_LOG` | Class — `write( )` INSERT ลง `ZIME001_LOG` · release C1 + Use in Key User Apps | `src/zcl_zime001_log.clas.abap` | ✅ `36cd138` (2026-10-05) |
+| `ZCL_ZIME001_LOG` API state | APIS — C1 · Released · Use in Key User Apps · ลบก่อน transport (ต้องเปลี่ยนเป็น Not Released ก่อนลบ class) | `src/zcl_zime001_log                     clas.apis.xml` | ✅ `36cd138` |
