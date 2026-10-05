@@ -10,11 +10,17 @@ Key user object ไม่ขึ้น git — เก็บสำเนา code �
 | Filter | ไม่จำกัด (Q-16 · 2026-10-05) |
 | เรียก | `ZCL_ZIME001` (C1 · Use in Key User Apps) |
 
-## Code (ส่ง 2026-10-05 · Phase 3)
+## Code ปัจจุบัน (ส่ง 2026-10-05 · Phase 3 + log ชั่วคราว R-02)
+
+ตอนลบ log ก่อน transport: ลบบรรทัด `lv_batch_out_before` และการเรียก `zcl_zime001_log=>write` ออก ที่เหลือคือ code ของ Phase 3
 
 ```abap
 " ZIME001 Automatic Batch Creation
 " logic ทั้งหมดอยู่ใน class ZCL_ZIME001
+
+" เก็บค่า batch_out ก่อนแก้ไว้ให้ log ชั่วคราว
+DATA(lv_batch_out_before) = batch_out.
+
 " batch_in ไม่ตรง format YYMMDDNNNN -> ไม่แตะ batch_out ระบบใช้เลขตามปกติ
 IF zcl_zime001=>is_valid_batch_format( batch_in ) = abap_true.
 
@@ -27,6 +33,13 @@ IF zcl_zime001=>is_valid_batch_format( batch_in ) = abap_true.
   ENDIF.
 
 ENDIF.
+
+" log ชั่วคราวสำหรับดูค่าที่แต่ละ app ส่งเข้ามา
+" ลบส่วนนี้พร้อม class ZCL_ZIME001_LOG และ table ZIME001_LOG ก่อน transport
+zcl_zime001_log=>write( is_batch_allocation = CORRESPONDING #( batch_allocation )
+                        iv_batch_in         = batch_in
+                        iv_batch_out_before = lv_batch_out_before
+                        iv_batch_out_after  = batch_out ).
 ```
 
 ## ทดสอบในแท็บ Test
