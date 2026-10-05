@@ -10,7 +10,7 @@ Key user object ไม่ขึ้น git — เก็บสำเนา code �
 | Filter | ไม่จำกัด (Q-16 · 2026-10-05) |
 | เรียก | `ZCL_ZIME001` (C1 · Use in Key User Apps) |
 
-## Code ปัจจุบัน (ส่ง 2026-10-05 · ช่วงเก็บข้อมูล R-02)
+## Code ปัจจุบัน (ส่ง 2026-10-05 · ช่วงเก็บข้อมูล R-02 · parameter `iv_batch_out`)
 
 เก็บ log อย่างเดียว **ไม่ validate และไม่แก้ `batch_out`** จนกว่าจะออกแบบ R-01 เสร็จ
 
@@ -21,7 +21,7 @@ Key user object ไม่ขึ้น git — เก็บสำเนา code �
 " ลบส่วนนี้พร้อม class ZCL_ZIME001_LOG และ table ZIME001_LOG ก่อน transport
 zcl_zime001_log=>write( is_batch_allocation = CORRESPONDING #( batch_allocation )
                         iv_batch_in         = batch_in
-                        iv_batch_out_before = batch_out
+                        iv_batch_out        = batch_out
                         iv_batch_out_after  = batch_out ).
 ```
 
