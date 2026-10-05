@@ -8,6 +8,7 @@
 | `ZCL_ZIME001` | Class — `is_valid_batch_format( )` ตรวจ format batch `YYMMDDNNNN` เทียบปีปัจจุบัน UTC+7 · `generate_batch_number( )` หาเลขถัดไปของ material จาก `I_Batch` | `src/zcl_zime001.clas.abap` | ✅ `aa5f697` (2026-10-05) |
 | `ZCL_ZIME001` method `generate_batch_number` | สร้างเลข batch `YYMMDDNNNN` ถัดไปของ material (`I_Batch` privileged access · ไม่กรอง plant) | `src/zcl_zime001.clas.abap` | ✅ `38be34d` (2026-10-05) |
 | `ZCL_ZIME001` API state | APIS — C1 · Released · Use in Key User Apps · ชื่อไฟล์มีช่องว่างคั่นเพราะ SAP serialize key แบบ padded **ห้าม rename** | `src/zcl_zime001                         clas.apis.xml` | ✅ `38be34d` |
+| `ZCL_ZIME001` R-03 draft | `gc_case` · `ty_batch_allocation` · `get_batch_number( )` · `get_batch_case_a( )` · `generate_batch_number( iv_date )` · `get_current_date( )` ใช้ `ZCL_UTILITY` · Custom Logic ยังไม่เรียก | `src/zcl_zime001.clas.abap` | 🟨 ส่ง code 2026-10-05 |
 | `ZCL_ZIME001` testclasses | ABAP Unit ของ method ตรวจ format | `src/zcl_zime001.clas.testclasses.abap` | ✅ 17 test เขียว (`ltc_batch_format` 12 · `ltc_batch_number` 5) `38be34d` |
 | `YY1_AFTER_BATCH_NUMBER_INT` | Custom Logic ของ BAdI `LOBM_AFTER_BATCH_NUMBER_INT` | — key user ไม่ขึ้น git · สำเนาใน `docs/04_custom_logic.md` | 🟨 ส่ง code รอบ 4 2026-10-05 รอยืนยัน publish — เก็บ log อย่างเดียว ไม่แก้ `batch_out` · parameter `iv_batch_out` |
 
