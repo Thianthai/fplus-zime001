@@ -1,0 +1,137 @@
+CLASS ltc_batch_format DEFINITION DEFERRED.
+CLASS zcl_zime001 DEFINITION LOCAL FRIENDS ltc_batch_format.
+
+"! ทดสอบการตรวจ format ของเลข batch YYMMDDNNNN
+"! กำหนดวันที่ปัจจุบันเองผ่าน check_batch_format จึงไม่ขึ้นกับวันที่รัน test
+CLASS ltc_batch_format DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PRIVATE SECTION.
+
+    CONSTANTS:
+      "! วันที่ปัจจุบันสมมติในปีปกติ
+      gc_today      TYPE d VALUE '20260315',
+      "! วันที่ปัจจุบันสมมติในปีอธิกสุรทิน
+      gc_today_leap TYPE d VALUE '20280101'.
+
+    "! เรียก check_batch_format ด้วยวันที่สมมติ
+    "! @parameter iv_batch | เลข batch ที่ต้องการตรวจ
+    "! @parameter iv_today | วันที่ปัจจุบันสมมติ
+    "! @parameter rv_valid | ผลการตรวจ
+    METHODS check
+      IMPORTING iv_batch        TYPE charg_d
+                iv_today        TYPE d DEFAULT gc_today
+      RETURNING VALUE(rv_valid) TYPE abap_boolean.
+
+    "! เลขที่ถูกต้องทุกข้อต้องผ่าน
+    METHODS valid_batch_passes        FOR TESTING.
+    "! MMDD ไม่จำเป็นต้องตรงกับวันนี้ ขอแค่เป็นวันที่มีจริงในปีปัจจุบัน
+    METHODS other_day_same_year_passes FOR TESTING.
+    "! running number 9999 ยังอยู่ในช่วงที่ยอมรับ
+    METHODS running_9999_passes       FOR TESTING.
+    "! สั้นกว่า 10 ตัวหรือว่างต้องไม่ผ่าน
+    METHODS short_or_blank_fails      FOR TESTING.
+    "! มีตัวอักษรหรือช่องว่างต้องไม่ผ่าน
+    METHODS non_digit_fails           FOR TESTING.
+    "! YY ไม่ใช่ปีปัจจุบันต้องไม่ผ่าน
+    METHODS other_year_fails          FOR TESTING.
+    "! MM นอกช่วง 01-12 ต้องไม่ผ่าน
+    METHODS invalid_month_fails       FOR TESTING.
+    "! DD นอกช่วง 01-31 ต้องไม่ผ่าน
+    METHODS invalid_day_fails         FOR TESTING.
+    "! วันที่ที่ไม่มีจริงต้องไม่ผ่าน
+    METHODS not_real_date_fails       FOR TESTING.
+    "! 29 ก.พ. ผ่านเฉพาะปีอธิกสุรทิน
+    METHODS leap_day_passes           FOR TESTING.
+    "! running number 0000 ต้องไม่ผ่าน
+    METHODS running_zero_fails        FOR TESTING.
+    "! เลขที่สร้างจากวันที่ปัจจุบันจริงต้องผ่าน method public
+    METHODS current_date_batch_passes FOR TESTING.
+
+ENDCLASS.
+
+
+CLASS ltc_batch_format IMPLEMENTATION.
+
+  METHOD check.
+    rv_valid = zcl_zime001=>check_batch_format( iv_batch        = iv_batch
+                                                iv_current_date = iv_today ).
+  ENDMETHOD.
+
+
+  METHOD valid_batch_passes.
+    cl_abap_unit_assert=>assert_true( act = check( '2603150001' ) msg = 'วันนี้ running 0001' ).
+  ENDMETHOD.
+
+
+  METHOD other_day_same_year_passes.
+    cl_abap_unit_assert=>assert_true( act = check( '2601010001' ) msg = 'ต้นปี' ).
+    cl_abap_unit_assert=>assert_true( act = check( '2612310001' ) msg = 'สิ้นปี' ).
+  ENDMETHOD.
+
+
+  METHOD running_9999_passes.
+    cl_abap_unit_assert=>assert_true( act = check( '2603159999' ) msg = 'running 9999' ).
+  ENDMETHOD.
+
+
+  METHOD short_or_blank_fails.
+    cl_abap_unit_assert=>assert_false( act = check( '260315001' ) msg = 'ยาว 9 ตัว' ).
+    cl_abap_unit_assert=>assert_false( act = check( '' )          msg = 'ค่าว่าง' ).
+  ENDMETHOD.
+
+
+  METHOD non_digit_fails.
+    cl_abap_unit_assert=>assert_false( act = check( '26031A0001' ) msg = 'มีตัวอักษร' ).
+    cl_abap_unit_assert=>assert_false( act = check( ' 260315001' ) msg = 'ช่องว่างนำหน้า' ).
+    cl_abap_unit_assert=>assert_false( act = check( '26031 0001' ) msg = 'ช่องว่างตรงกลาง' ).
+  ENDMETHOD.
+
+
+  METHOD other_year_fails.
+    cl_abap_unit_assert=>assert_false( act = check( '2503150001' ) msg = 'ปีก่อน' ).
+    cl_abap_unit_assert=>assert_false( act = check( '2703150001' ) msg = 'ปีหน้า' ).
+  ENDMETHOD.
+
+
+  METHOD invalid_month_fails.
+    cl_abap_unit_assert=>assert_false( act = check( '2600150001' ) msg = 'เดือน 00' ).
+    cl_abap_unit_assert=>assert_false( act = check( '2613150001' ) msg = 'เดือน 13' ).
+  ENDMETHOD.
+
+
+  METHOD invalid_day_fails.
+    cl_abap_unit_assert=>assert_false( act = check( '2603000001' ) msg = 'วันที่ 00' ).
+    cl_abap_unit_assert=>assert_false( act = check( '2603320001' ) msg = 'วันที่ 32' ).
+  ENDMETHOD.
+
+
+  METHOD not_real_date_fails.
+    cl_abap_unit_assert=>assert_false( act = check( '2604310001' ) msg = '31 เมษายน' ).
+    cl_abap_unit_assert=>assert_false( act = check( '2602290001' ) msg = '29 ก.พ. ปีปกติ' ).
+    cl_abap_unit_assert=>assert_false( act = check( '2602300001' ) msg = '30 ก.พ.' ).
+  ENDMETHOD.
+
+
+  METHOD leap_day_passes.
+    cl_abap_unit_assert=>assert_true( act = check( iv_batch = '2802290001'
+                                                   iv_today = gc_today_leap )
+                                      msg = '29 ก.พ. ปีอธิกสุรทิน' ).
+  ENDMETHOD.
+
+
+  METHOD running_zero_fails.
+    cl_abap_unit_assert=>assert_false( act = check( '2603150000' ) msg = 'running 0000' ).
+  ENDMETHOD.
+
+
+  METHOD current_date_batch_passes.
+    DATA(lv_today) = zcl_zime001=>get_current_date( ).
+    DATA(lv_batch) = CONV charg_d( |{ substring( val = lv_today off = 2 len = 6 ) }0001| ).
+
+    cl_abap_unit_assert=>assert_true( act = zcl_zime001=>is_valid_batch_format( lv_batch )
+                                      msg = 'เลขของวันนี้ตามเวลา UTC+7' ).
+  ENDMETHOD.
+
+ENDCLASS.
