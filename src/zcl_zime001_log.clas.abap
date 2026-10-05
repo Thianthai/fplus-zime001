@@ -57,12 +57,12 @@ CLASS zcl_zime001_log DEFINITION
     "! ถ้า app ยกเลิกหรือ error row นี้จะหายไปด้วย
     "! @parameter is_batch_allocation | parameter BATCH_ALLOCATION ของ BAdI
     "! @parameter iv_batch_in         | parameter BATCH_IN ของ BAdI
-    "! @parameter iv_batch_out_before | BATCH_OUT ก่อน Custom Logic แก้
+    "! @parameter iv_batch_out        | parameter BATCH_OUT ของ BAdI ก่อน Custom Logic แก้
     "! @parameter iv_batch_out_after  | BATCH_OUT หลัง Custom Logic แก้
     CLASS-METHODS write
       IMPORTING is_batch_allocation TYPE ty_batch_allocation
                 iv_batch_in         TYPE charg_d
-                iv_batch_out_before TYPE charg_d
+                iv_batch_out        TYPE charg_d
                 iv_batch_out_after  TYPE charg_d.
 
   PRIVATE SECTION.
@@ -91,12 +91,12 @@ CLASS zcl_zime001_log IMPLEMENTATION.
         RETURN.
     ENDTRY.
 
-    ls_log-created_at       = utclong_current( ).
-    ls_log-created_by       = cl_abap_context_info=>get_user_technical_name( ).
-    ls_log-batch_in         = iv_batch_in.
-    ls_log-batch_out_before = iv_batch_out_before.
-    ls_log-batch_out_after  = iv_batch_out_after.
-    ls_log-is_valid_format  = zcl_zime001=>is_valid_batch_format( iv_batch_in ).
+    ls_log-created_at      = utclong_current( ).
+    ls_log-created_by      = cl_abap_context_info=>get_user_technical_name( ).
+    ls_log-batch_in        = iv_batch_in.
+    ls_log-batch_out       = iv_batch_out.
+    ls_log-batch_out_after = iv_batch_out_after.
+    ls_log-is_valid_format = zcl_zime001=>is_valid_batch_format( iv_batch_in ).
 
     INSERT zime001_log FROM @ls_log.
   ENDMETHOD.
