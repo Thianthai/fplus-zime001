@@ -17,3 +17,4 @@
 | Q-13 | **กรอง plant ตอนหา batch ล่าสุดหรือไม่** | ✅ **ปิด 2026-10-05** — ไม่กรอง (batch level ระดับ material) |
 | Q-14 | **type ของ `iv_material`** | ✅ **ปิด 2026-10-05** — `MATNR` release C1 (ผู้ใช้เช็คใน ADT) |
 | Q-15 | **`I_Batch` มี access control** | ✅ **ปิด 2026-10-05** — ใช้ `WITH PRIVILEGED ACCESS` เสมอ เพราะเรียกจาก Custom Logic |
+| Q-16 | **จำกัด Custom Logic เฉพาะบาง plant / material type / movement type หรือไม่** | ✅ **ปิด 2026-10-05** — ยังไม่จำกัด |

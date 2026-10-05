@@ -39,3 +39,4 @@ batch_out
 | [docs/01_design.md](docs/01_design.md) | design และ phase |
 | [docs/02_object_list.md](docs/02_object_list.md) | รายชื่อ object และ status |
 | [docs/03_open_questions.md](docs/03_open_questions.md) | ข้อสงสัยที่รอคำตอบ |
+| [docs/04_custom_logic.md](docs/04_custom_logic.md) | สำเนา code ของ Custom Logic และผลทดสอบ |
