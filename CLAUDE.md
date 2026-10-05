@@ -28,6 +28,15 @@ Custom Logic (key user) เรียก class ของ developer extensibility 
   เหตุผล: เป็น logic ของระบบ ถ้าติดสิทธิ์ของ user ที่สร้าง batch จะอ่านข้อมูลไม่ครบ
 - code ของ Custom Logic ไม่ขึ้น git — เก็บสำเนาไว้ใน `docs/` เพื่ออ้างอิง
 
+## ของกลางที่ใช้
+
+| Object | Package | ใช้ทำอะไร |
+|---|---|---|
+| `ZCL_PARAM` / `ZCX_PARAM` | `ZBCPARAM` (repo `fplus-zbcparam`) | อ่าน constant parameter · `CREATE PRIVATE` ต้องใช้ `create_instance( )` |
+| `ZCL_UTILITY=>get_local_datetime( )` | `ZBCUTILITY` (repo `fplus-zbcutility`) | วันที่และเวลา local (UTC+7) |
+
+transport `ZBCPARAM` และ `ZBCUTILITY` ขึ้นก่อนหรือพร้อม ZIME001 เสมอ
+
 ## Coding rules
 
 ใช้กฎกลางทั้งหมด โดยเฉพาะ

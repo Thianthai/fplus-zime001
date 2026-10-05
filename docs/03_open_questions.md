@@ -22,10 +22,10 @@
 | Q-18 | **ชื่อ field ของ `ZIME001_LOG`** | ✅ **ปิด 2026-10-05** — ใช้ชื่อเดียวกับ BAdI ตรง ๆ (ยกเว้นกฎ snake_case เพราะเป็น table ชั่วคราว) |
 | Q-19 | **แยก class log** | ✅ **ปิด 2026-10-05** — แยกเป็น `ZCL_ZIME001_LOG` ไม่แตะ `ZCL_ZIME001` |
 | Q-20 | **สวิตช์ปิด log** | ✅ **ปิด 2026-10-05** — constant `gc_active` ใน `ZCL_ZIME001_LOG` |
-| Q-21 | **ใครเป็นคนกำหนด case** — Custom Logic ส่ง case คงที่เข้า method (ตอนนี้ `CASE_A` ตายตัว) หรือ class มี method `determine_case( )` ที่ตอนนี้คืน `CASE_A` เสมอ แล้วค่อยใส่กฎหลังได้ log | ผู้ใช้ | ⬜ |
-| Q-22 | **อ่านสถานะ release + ScheduledStartDate จาก CDS ไหน** — เสนอ `I_ManufacturingOrder` (`OrderIsReleased` · `MfgOrderScheduledStartDate`) ต้องเช็คว่ามีและ release C1 | ผู้ใช้เช็คใน ADT | ⬜ |
-| Q-23 | **จังหวะเวลา** — ตอน CO01 order ยังไม่อยู่ใน DB (เลขอาจเป็นเลขชั่วคราว) · ตอน release / แก้วันที่ใน CO02 ค่าใน DB ยังเป็นค่าเก่าจนกว่าจะ save · ถ้าอ่าน CDS ไม่เจอหรือยังไม่ released ให้ทำอย่างไร | ผู้ใช้ + log จริง | ⬜ |
-| Q-24 | **order type เช็คจากไหน** — `batch_allocation-ordertype` ที่ BAdI ส่งมา (ไม่ต้องอ่าน DB) หรือจาก CDS | ผู้ใช้ | ⬜ |
-| Q-25 | **CASE_A ยังต้อง validate format ของ `batch_in` หรือไม่** — ถ้ายังต้อง YY ปีปัจจุบันของ `batch_in` อาจไม่ตรงกับปีของ ScheduledStartDate | ผู้ใช้ | ⬜ |
-| Q-26 | **วิธีส่งวันที่เข้า `generate_batch_number`** — เพิ่ม optional `iv_date` (default วันนี้ UTC+7) ใน method เดิมที่ release C1 แล้ว หรือสร้าง method ใหม่ | ผู้ใช้ | ⬜ |
-| Q-27 | **constant parameter** — `ZCL_PARAM` เป็น `CREATE PRIVATE` ต้องใช้ `zcl_param=>create_instance( )` แทน `NEW` · record ต้อง company code ว่าง module `MM` app `IME001` · ไม่เจอ record (`ZCX_PARAM`) ให้ข้ามไม่แตะ `batch_out` ใช่หรือไม่ | ผู้ใช้ | ⬜ |
+| Q-21 | **ใครเป็นคนกำหนด case** | ✅ **ปิด 2026-10-05** — draft ไว้ก่อน ค่อยแก้ทีหลังเมื่อได้ log · ตอนนี้ fix `CASE_A` |
+| Q-22 | **อ่านสถานะ release + ScheduledStartDate จาก CDS ไหน** — `I_ManufacturingOrder` | ผู้ใช้ส่ง source มาให้ | ⬜ รอ source |
+| Q-23 | **จังหวะเวลา** | ✅ **ปิด 2026-10-05 (draft)** — อ่านไม่เจอหรือยังไม่ released -> ข้าม ไม่แตะ `batch_out` · ของจริงค่อยแก้ |
+| Q-24 | **order type เช็คจากไหน** | ✅ **ปิด 2026-10-05** — `batch_allocation-ordertype` |
+| Q-25 | **CASE_A validate `batch_in` หรือไม่** | ✅ **ปิด 2026-10-05** — ไม่ใช้กฎเดิม ใช้วันที่จาก ScheduledStartDate |
+| Q-26 | **ส่งวันที่เข้า `generate_batch_number`** | ✅ **ปิด 2026-10-05** — เพิ่ม optional `iv_date` ใน method เดิม · วันที่ปัจจุบันใช้ `zcl_utility=>get_local_datetime( )` (package `ZBCUTILITY`) แทนการบวก 7 ชม. เอง |
+| Q-27 | **constant parameter** | ✅ **ปิด 2026-10-05** — `zcl_param=>create_instance( iv_company_code = '' iv_module_id = 'MM' )` · app `IME001` · param `PRODUCTION_ORDER_TYPE` · ไม่เจอ -> ข้าม |
