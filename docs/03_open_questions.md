@@ -15,5 +15,5 @@
 | Q-11 | **`batch_in` ไม่ผ่าน format** | ✅ **ปิด 2026-10-05** — ไม่แตะ `batch_out` |
 | Q-12 | **เลขชนกัน** (batch ที่ยังไม่ commit ไม่เห็นใน CDS) | ✅ **ปิด 2026-10-05** — ผู้ใช้ยอมรับความเสี่ยง |
 | Q-13 | **กรอง plant ตอนหา batch ล่าสุดหรือไม่** | ✅ **ปิด 2026-10-05** — ไม่กรอง (batch level ระดับ material) |
-| Q-14 | **type ของ `iv_material`** — data element `MATNR` release C1 + Use in Key User Apps หรือไม่ (Custom Logic ส่ง `batch_allocation-material` CHAR 40) | ผู้ใช้เช็คใน ADT | ⬜ |
-| Q-15 | **`I_Batch` มี access control** — user ที่สร้าง batch อาจไม่มีสิทธิ์อ่านบาง batch ทำให้เลขซ้ำ · เสนอ `SELECT ... WITH PRIVILEGED ACCESS` | ผู้ใช้ | ⬜ |
+| Q-14 | **type ของ `iv_material`** | ✅ **ปิด 2026-10-05** — `MATNR` release C1 (ผู้ใช้เช็คใน ADT) |
+| Q-15 | **`I_Batch` มี access control** | ✅ **ปิด 2026-10-05** — ใช้ `WITH PRIVILEGED ACCESS` เสมอ เพราะเรียกจาก Custom Logic |
