@@ -16,7 +16,21 @@ CLASS zcl_zime001 DEFINITION
       IMPORTING iv_batch        TYPE charg_d
       RETURNING VALUE(rv_valid) TYPE abap_boolean.
 
+    "! สร้างเลข batch YYMMDDNNNN ถัดไปของ material ตามวันที่ปัจจุบัน UTC+7
+    "! NNNN คือ running number สูงสุดของ material ที่ขึ้นต้นด้วย YYMMDD เดียวกันบวก 1
+    "! ยังไม่เคยมี batch ของวันนี้จะได้ 0001
+    "! running number ถึง 9999 แล้วจะคืนค่าว่าง ให้ผู้เรียกไม่แตะเลข batch
+    "! @parameter iv_material | material ที่กำลังสร้าง batch
+    "! @parameter rv_batch    | เลข batch ถัดไป หรือค่าว่างเมื่อ running number เต็ม
+    CLASS-METHODS generate_batch_number
+      IMPORTING iv_material     TYPE matnr
+      RETURNING VALUE(rv_batch) TYPE charg_d.
+
   PRIVATE SECTION.
+
+    TYPES:
+      "! รายการเลข batch
+      tt_batch TYPE STANDARD TABLE OF charg_d WITH EMPTY KEY.
 
     CONSTANTS:
       "! ความยาวของเลข batch ตาม format YYMMDDNNNN
@@ -25,6 +39,8 @@ CLASS zcl_zime001 DEFINITION
       gc_digits         TYPE string VALUE `0123456789`,
       "! running number ที่ไม่ยอมให้ใช้
       gc_running_zero   TYPE n LENGTH 4 VALUE '0000',
+      "! running number สูงสุดที่ยอมให้ใช้
+      gc_running_max    TYPE i VALUE 9999,
       "! เวลา UTC ที่เวลาไทย (UTC+7) ขึ้นวันใหม่
       gc_utc7_day_start TYPE t VALUE '170000'.
 
@@ -43,6 +59,16 @@ CLASS zcl_zime001 DEFINITION
                 iv_current_date TYPE d
       RETURNING VALUE(rv_valid) TYPE abap_boolean.
 
+    "! หาเลข batch ถัดไปจากรายการ batch ที่มีอยู่แล้ว โดยไม่อ่าน DB
+    "! แยกออกมาไว้ให้ test ส่งรายการ batch เองได้
+    "! @parameter iv_current_date | วันที่ปัจจุบันที่ใช้เป็น YYMMDD
+    "! @parameter it_batches      | batch ที่มีอยู่แล้วของ material
+    "! @parameter rv_batch        | เลข batch ถัดไป หรือค่าว่างเมื่อ running number เต็ม
+    CLASS-METHODS next_batch_number
+      IMPORTING iv_current_date TYPE d
+                it_batches      TYPE tt_batch
+      RETURNING VALUE(rv_batch) TYPE charg_d.
+
 ENDCLASS.
 
 
@@ -51,6 +77,26 @@ CLASS zcl_zime001 IMPLEMENTATION.
   METHOD is_valid_batch_format.
     rv_valid = check_batch_format( iv_batch        = iv_batch
                                    iv_current_date = get_current_date( ) ).
+  ENDMETHOD.
+
+
+  METHOD generate_batch_number.
+    DATA lt_batches TYPE tt_batch.
+
+    DATA(lv_current_date) = get_current_date( ).
+    DATA(lv_pattern) = |{ lv_current_date+2(6) }%|.
+
+    " อ่าน batch ของ material ที่ขึ้นต้นด้วย YYMMDD ของวันนี้
+    " ใช้ privileged access เพราะเป็น logic ของระบบ ไม่ขึ้นกับสิทธิ์ของ user ที่สร้าง batch
+    " batch level เป็นระดับ material จึงไม่กรอง plant
+    SELECT Batch
+      FROM I_Batch WITH PRIVILEGED ACCESS
+      WHERE Material = @iv_material
+        AND Batch    LIKE @lv_pattern
+      INTO TABLE @lt_batches.
+
+    rv_batch = next_batch_number( iv_current_date = lv_current_date
+                                  it_batches      = lt_batches ).
   ENDMETHOD.
 
 
@@ -99,6 +145,38 @@ CLASS zcl_zime001 IMPLEMENTATION.
     ENDIF.
 
     rv_valid = abap_true.
+  ENDMETHOD.
+
+
+  METHOD next_batch_number.
+    DATA lv_running      TYPE i.
+    DATA lv_max_running  TYPE i.
+    DATA lv_next_running TYPE n LENGTH 4.
+
+    LOOP AT it_batches INTO DATA(lv_batch).
+      " นับเฉพาะ batch ของวันนี้ที่ตรง format
+      " batch เก่าที่มีตัวอักษรหรือยาวไม่ครบจะถูกข้าม
+      IF lv_batch(6) <> iv_current_date+2(6)
+          OR check_batch_format( iv_batch        = lv_batch
+                                 iv_current_date = iv_current_date ) = abap_false.
+        CONTINUE.
+      ENDIF.
+
+      lv_running = lv_batch+6(4).
+      IF lv_running > lv_max_running.
+        lv_max_running = lv_running.
+      ENDIF.
+    ENDLOOP.
+
+    " running number เต็มแล้ว
+    " คืนค่าว่างให้ผู้เรียกไม่แตะเลข batch
+    IF lv_max_running >= gc_running_max.
+      RETURN.
+    ENDIF.
+
+    " ยังไม่มี batch ของวันนี้ lv_max_running เป็น 0 จึงได้ 0001
+    lv_next_running = lv_max_running + 1.
+    rv_batch = |{ iv_current_date+2(6) }{ lv_next_running }|.
   ENDMETHOD.
 
 ENDCLASS.

@@ -1,5 +1,6 @@
 CLASS ltc_batch_format DEFINITION DEFERRED.
-CLASS zcl_zime001 DEFINITION LOCAL FRIENDS ltc_batch_format.
+CLASS ltc_batch_number DEFINITION DEFERRED.
+CLASS zcl_zime001 DEFINITION LOCAL FRIENDS ltc_batch_format ltc_batch_number.
 
 "! ทดสอบการตรวจ format ของเลข batch YYMMDDNNNN
 "! กำหนดวันที่ปัจจุบันเองผ่าน check_batch_format จึงไม่ขึ้นกับวันที่รัน test
@@ -48,6 +49,38 @@ CLASS ltc_batch_format DEFINITION FINAL FOR TESTING
     METHODS running_zero_fails        FOR TESTING.
     "! เลขที่สร้างจากวันที่ปัจจุบันจริงต้องผ่าน method public
     METHODS current_date_batch_passes FOR TESTING.
+
+ENDCLASS.
+
+
+"! ทดสอบการหาเลข batch ถัดไปจากรายการ batch ที่มีอยู่แล้ว
+"! ส่งรายการ batch เองผ่าน next_batch_number จึงไม่อ่าน DB
+CLASS ltc_batch_number DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PRIVATE SECTION.
+
+    "! วันที่ปัจจุบันสมมติ
+    CONSTANTS gc_today TYPE d VALUE '20260315'.
+
+    "! เรียก next_batch_number ด้วยวันที่สมมติ
+    "! @parameter it_batches | batch ที่มีอยู่แล้วของ material
+    "! @parameter rv_batch   | เลข batch ถัดไป
+    METHODS next
+      IMPORTING it_batches      TYPE zcl_zime001=>tt_batch
+      RETURNING VALUE(rv_batch) TYPE charg_d.
+
+    "! ยังไม่มี batch ของวันนี้ต้องได้ 0001
+    METHODS no_batch_gives_0001     FOR TESTING.
+    "! มี batch แล้วต้องได้ค่าสูงสุดบวก 1 แม้รายการไม่เรียง
+    METHODS max_plus_one            FOR TESTING.
+    "! running number ถึง 9999 แล้วต้องได้ค่าว่าง
+    METHODS full_gives_blank        FOR TESTING.
+    "! batch ที่ไม่ตรง format ต้องถูกข้าม
+    METHODS invalid_format_skipped  FOR TESTING.
+    "! batch ของวันอื่นต้องถูกข้าม
+    METHODS other_day_skipped       FOR TESTING.
 
 ENDCLASS.
 
@@ -132,6 +165,57 @@ CLASS ltc_batch_format IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_true( act = zcl_zime001=>is_valid_batch_format( lv_batch )
                                       msg = 'เลขของวันนี้ตามเวลา UTC+7' ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltc_batch_number IMPLEMENTATION.
+
+  METHOD next.
+    rv_batch = zcl_zime001=>next_batch_number( iv_current_date = gc_today
+                                               it_batches      = it_batches ).
+  ENDMETHOD.
+
+
+  METHOD no_batch_gives_0001.
+    cl_abap_unit_assert=>assert_equals( act = next( VALUE #( ) )
+                                        exp = '2603150001'
+                                        msg = 'ยังไม่มี batch' ).
+  ENDMETHOD.
+
+
+  METHOD max_plus_one.
+    cl_abap_unit_assert=>assert_equals( act = next( VALUE #( ( '2603150003' )
+                                                             ( '2603150010' )
+                                                             ( '2603150002' ) ) )
+                                        exp = '2603150011'
+                                        msg = 'สูงสุด 0010' ).
+  ENDMETHOD.
+
+
+  METHOD full_gives_blank.
+    cl_abap_unit_assert=>assert_initial( act = next( VALUE #( ( '2603150001' )
+                                                              ( '2603159999' ) ) )
+                                         msg = 'running 9999 แล้ว' ).
+  ENDMETHOD.
+
+
+  METHOD invalid_format_skipped.
+    cl_abap_unit_assert=>assert_equals( act = next( VALUE #( ( '260315AB99' )
+                                                             ( '26031599' )
+                                                             ( '2603150005' ) ) )
+                                        exp = '2603150006'
+                                        msg = 'ข้าม batch ที่ไม่ตรง format' ).
+  ENDMETHOD.
+
+
+  METHOD other_day_skipped.
+    cl_abap_unit_assert=>assert_equals( act = next( VALUE #( ( '2603149999' )
+                                                             ( '2603160500' )
+                                                             ( '2603150004' ) ) )
+                                        exp = '2603150005'
+                                        msg = 'ข้าม batch ของวันอื่น' ).
   ENDMETHOD.
 
 ENDCLASS.
