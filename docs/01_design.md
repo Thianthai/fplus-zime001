@@ -1,6 +1,6 @@
 # 01 — Design
 
-> สถานะ: **draft รอผู้ใช้รีวิว** (2026-10-02)
+> สถานะ: **draft รอผู้ใช้รีวิว** (2026-10-02 · อัปเดตตามคำตอบ Q-01 ถึง Q-05 2026-10-05)
 
 ## BAdI `LOBM_AFTER_BATCH_NUMBER_INT`
 
@@ -22,20 +22,27 @@
 
 | ข้อ | กฎ |
 |---|---|
-| 4.1 | ยาว 10 ตัวพอดี (ไม่นับช่องว่างท้าย?) — ดู Q-03 |
+| 4.1 | ยาว 10 ตัวพอดี ค่าที่สั้นกว่าหรือมีช่องว่างไม่ผ่าน (Q-03) |
 | 4.2 | เป็นตัวเลข 0-9 ทั้งหมด |
-| 4.3 | `YY` = 2 หลักท้ายของปี — ดู Q-01 |
+| 4.3 | `YY` = 2 หลักท้ายของ **ปีปัจจุบัน** (Q-01) · ใช้วันที่ timezone ไหน ดู Q-06 |
 | 4.4 | `MM` = 01-12 |
-| 4.5 | `DD` = 01-31 — ดู Q-02 |
+| 4.5 | `DD` = 01-31 และ `YYMMDD` ต้องเป็น **วันที่มีจริง** รวมปีอธิกสุรทิน (Q-02) |
 | 4.6 | `NNNN` = 0001-9999 (0000 ไม่ผ่าน) |
 
 ผลลัพธ์: `abap_true` เมื่อผ่านทุกข้อ ไม่งั้น `abap_false`
+
+## Generate batch number (Phase 2)
+
+ตามคำตอบ Q-04: ถ้า `batch_in` ผ่าน format แล้ว `batch_out` = batch ล่าสุดของ material นั้น **+1**
+อ่านจาก CDS ที่มีทั้ง material และ batch · ถ้าไม่เคยมีมาก่อน `NNNN = 0001`
+ยังรอคำตอบ Q-07 ถึง Q-12
 
 ## Phase
 
 | Phase | เนื้อหา | สถานะ |
 |---|---|---|
 | 0 | Repo + เอกสาร | 🟨 |
-| 1 | `ZCL_ZIME001` method ตรวจ format + ABAP Unit + release C1 (Use in Key User Apps) | ⬜ รอรีวิวชื่อ |
-| 2 | Custom Logic `YY1_AFTER_BATCH_NUMBER_INT` เรียก class แล้วกำหนด `batch_out` | ⬜ รอ requirement (Q-04) |
-| 3 | ทดสอบ end-to-end + transport | ⬜ |
+| 1 | `ZCL_ZIME001=>is_valid_batch_format( )` + ABAP Unit + release C1 (Use in Key User Apps) | ⬜ รอ confirm ชื่อ + Q-06 |
+| 2 | `ZCL_ZIME001=>generate_batch_number( )` อ่าน batch ล่าสุดจาก CDS แล้ว +1 | ⬜ รอ Q-07 ถึง Q-12 |
+| 3 | Custom Logic `YY1_AFTER_BATCH_NUMBER_INT` เรียก 2 method แล้วกำหนด `batch_out` | ⬜ |
+| 4 | ทดสอบ end-to-end + transport | ⬜ |
