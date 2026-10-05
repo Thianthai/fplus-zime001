@@ -49,7 +49,7 @@
 | Phase | เนื้อหา | สถานะ |
 |---|---|---|
 | 0 | Repo + เอกสาร | ✅ |
-| 1 | `ZCL_ZIME001=>is_valid_batch_format( )` + ABAP Unit + release C1 (Use in Key User Apps) | 🟨 ส่ง code แล้ว 2026-10-05 |
+| 1 | `ZCL_ZIME001=>is_valid_batch_format( )` + ABAP Unit + release C1 (Use in Key User Apps) | ✅ `aa5f697` (2026-10-05) |
 | 2 | `ZCL_ZIME001=>generate_batch_number( )` อ่าน batch ล่าสุดจาก CDS แล้ว +1 | ⬜ รอ Q-13 |
 | 3 | Custom Logic `YY1_AFTER_BATCH_NUMBER_INT` เรียก 2 method แล้วกำหนด `batch_out` | ⬜ |
 | 4 | ทดสอบ end-to-end + transport | ⬜ |
