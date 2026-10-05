@@ -61,26 +61,35 @@ CLASS ltc_batch_number DEFINITION FINAL FOR TESTING
 
   PRIVATE SECTION.
 
-    "! วันที่ปัจจุบันสมมติ
-    CONSTANTS gc_today TYPE d VALUE '20260315'.
+    CONSTANTS:
+      "! วันที่ปัจจุบันสมมติ
+      gc_today     TYPE d VALUE '20260315',
+      "! วันที่ในปีหน้า แทนวันเริ่มตามแผนของ order ที่อยู่ข้ามปี
+      gc_next_year TYPE d VALUE '20270105'.
 
     "! เรียก next_batch_number ด้วยวันที่สมมติ
     "! @parameter it_batches | batch ที่มีอยู่แล้วของ material
+    "! @parameter iv_date    | วันที่ที่ใช้เป็น YYMMDD
     "! @parameter rv_batch   | เลข batch ถัดไป
     METHODS next
       IMPORTING it_batches      TYPE zcl_zime001=>tt_batch
+                iv_date         TYPE d DEFAULT gc_today
       RETURNING VALUE(rv_batch) TYPE charg_d.
 
     "! ยังไม่มี batch ของวันนี้ต้องได้ 0001
-    METHODS no_batch_gives_0001     FOR TESTING.
+    METHODS no_batch_gives_0001      FOR TESTING.
     "! มี batch แล้วต้องได้ค่าสูงสุดบวก 1 แม้รายการไม่เรียง
-    METHODS max_plus_one            FOR TESTING.
+    METHODS max_plus_one             FOR TESTING.
     "! running number ถึง 9999 แล้วต้องได้ค่าว่าง
-    METHODS full_gives_blank        FOR TESTING.
+    METHODS full_gives_blank         FOR TESTING.
     "! batch ที่ไม่ตรง format ต้องถูกข้าม
-    METHODS invalid_format_skipped  FOR TESTING.
+    METHODS invalid_format_skipped   FOR TESTING.
     "! batch ของวันอื่นต้องถูกข้าม
-    METHODS other_day_skipped       FOR TESTING.
+    METHODS other_day_skipped        FOR TESTING.
+    "! วันที่ในปีหน้าต้องได้ YYMMDD ของวันนั้นและนับต่อจาก batch ของวันนั้น
+    METHODS next_year_date           FOR TESTING.
+    "! case ที่ยังไม่รู้จักต้องได้ค่าว่าง
+    METHODS unknown_case_gives_blank FOR TESTING.
 
 ENDCLASS.
 
@@ -164,7 +173,7 @@ CLASS ltc_batch_format IMPLEMENTATION.
     DATA(lv_batch) = CONV charg_d( |{ substring( val = lv_today off = 2 len = 6 ) }0001| ).
 
     cl_abap_unit_assert=>assert_true( act = zcl_zime001=>is_valid_batch_format( lv_batch )
-                                      msg = 'เลขของวันนี้ตามเวลา UTC+7' ).
+                                      msg = 'เลขของวันนี้ตามเวลา local' ).
   ENDMETHOD.
 
 ENDCLASS.
@@ -173,7 +182,7 @@ ENDCLASS.
 CLASS ltc_batch_number IMPLEMENTATION.
 
   METHOD next.
-    rv_batch = zcl_zime001=>next_batch_number( iv_current_date = gc_today
+    rv_batch = zcl_zime001=>next_batch_number( iv_current_date = iv_date
                                                it_batches      = it_batches ).
   ENDMETHOD.
 
@@ -216,6 +225,23 @@ CLASS ltc_batch_number IMPLEMENTATION.
                                                              ( '2603150004' ) ) )
                                         exp = '2603150005'
                                         msg = 'ข้าม batch ของวันอื่น' ).
+  ENDMETHOD.
+
+
+  METHOD next_year_date.
+    cl_abap_unit_assert=>assert_equals( act = next( it_batches = VALUE #( ( '2603150009' )
+                                                                          ( '2701050003' ) )
+                                                    iv_date    = gc_next_year )
+                                        exp = '2701050004'
+                                        msg = 'วันเริ่มตามแผนในปีหน้า' ).
+  ENDMETHOD.
+
+
+  METHOD unknown_case_gives_blank.
+    cl_abap_unit_assert=>assert_initial( act = zcl_zime001=>get_batch_number(
+                                                 iv_case             = 'CASE_Z'
+                                                 is_batch_allocation = VALUE #( ) )
+                                         msg = 'case ที่ยังไม่รู้จัก' ).
   ENDMETHOD.
 
 ENDCLASS.
