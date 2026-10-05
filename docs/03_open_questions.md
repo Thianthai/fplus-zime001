@@ -19,3 +19,6 @@
 | Q-15 | **`I_Batch` มี access control** | ✅ **ปิด 2026-10-05** — ใช้ `WITH PRIVILEGED ACCESS` เสมอ เพราะเรียกจาก Custom Logic |
 | Q-16 | **จำกัด Custom Logic เฉพาะบาง plant / material type / movement type หรือไม่** | ✅ **ปิด 2026-10-05** — ยังไม่จำกัด |
 | Q-17 | **ค่า `BATCH_ALLOCATION` จริงของแต่ละ app ใน R-01** — trace ด้วยแอป Custom Logic Tracing แล้วส่งค่ามาวิเคราะห์ · ✅ CO01/CO02 กับ Mass Processing ใช้ logic เดียวกัน (2026-10-05) เหลือแยก 3 กลุ่ม | ผู้ใช้ | ⬜ รอ trace |
+| Q-18 | **ชื่อ field ของ `ZIME001_LOG`** — ใช้ชื่อเดียวกับ BAdI ตรง ๆ (`issuingorreceivingstorageloc`) ให้ Custom Logic ส่งด้วย `CORRESPONDING` ได้โดยไม่ต้อง map หรือ snake_case ตามกฎกลาง (บางชื่อเกิน 30 ตัวต้องย่อ + map 35 field) | ผู้ใช้ | ⬜ |
+| Q-19 | **แยก class log เป็น `ZCL_ZIME001_LOG`** หรือเพิ่ม method ใน `ZCL_ZIME001` — class ที่ release C1 แล้วลบ method ทิ้งภายหลังจะติด compatibility check · แยก class ลบทั้งก้อนพร้อม table ได้ | ผู้ใช้ | ⬜ |
+| Q-20 | **สวิตช์ปิด log** — constant `gc_active` ใน `ZCL_ZIME001_LOG` เผื่อบาง app dump เพราะห้ามแก้ DB ในจังหวะนั้น | ผู้ใช้ | ⬜ |

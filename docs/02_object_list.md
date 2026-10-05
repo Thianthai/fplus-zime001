@@ -10,3 +10,10 @@
 | `ZCL_ZIME001` API state | APIS — C1 · Released · Use in Key User Apps · ชื่อไฟล์มีช่องว่างคั่นเพราะ SAP serialize key แบบ padded **ห้าม rename** | `src/zcl_zime001                         clas.apis.xml` | ✅ `38be34d` |
 | `ZCL_ZIME001` testclasses | ABAP Unit ของ method ตรวจ format | `src/zcl_zime001.clas.testclasses.abap` | ✅ 17 test เขียว (`ltc_batch_format` 12 · `ltc_batch_number` 5) `38be34d` |
 | `YY1_AFTER_BATCH_NUMBER_INT` | Custom Logic ของ BAdI `LOBM_AFTER_BATCH_NUMBER_INT` | — key user ไม่ขึ้น git · สำเนาใน `docs/04_custom_logic.md` | 🟨 Phase 3 ส่ง code 2026-10-05 รอทดสอบและ publish |
+
+## ชั่วคราว (R-02) — ลบก่อน transport
+
+| Object | ชนิด | ไฟล์ | Status |
+|---|---|---|---|
+| `ZIME001_LOG` | Database table — 1 row ต่อ 1 call ของ BAdI | `src/zime001_log.tabl.xml` | ⬜ รอ confirm |
+| `ZCL_ZIME001_LOG` | Class — `write( )` INSERT ลง `ZIME001_LOG` · release C1 + Use in Key User Apps | `src/zcl_zime001_log.clas.abap` | ⬜ รอ confirm |

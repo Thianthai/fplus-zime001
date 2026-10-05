@@ -16,3 +16,4 @@
 | # | วันที่ | Requirement | กระทบ object | สถานะ |
 |---|---|---|---|---|
 | R-01 | 2026-10-05 | logic ต่างกันตามที่มาของ transaction: (1) Create/Change Production Order CO01/CO02 (2) Mass Processing of Production Orders (3) Goods Receipt MIGO (4) Create/Change Inbound Delivery VL31/VL32 | `ZCL_ZIME001` · Custom Logic | 🔍 วิเคราะห์ — แยกจาก field ใน `BATCH_ALLOCATION` (ไม่มี tcode / app id ให้ใช้) · เก็บค่าจริงด้วยแอป Custom Logic Tracing ก่อน (Q-17) · ข้อ 1 กับ 2 ใช้ logic เดียวกัน -> 3 กลุ่ม: Production Order · Goods Receipt · Inbound Delivery |
+| R-02 | 2026-10-05 | **ชั่วคราว** เก็บ import/changing ของ BAdI ทุก call ลง custom table เพื่อ investigate R-01 · ทุก field เป็น predefined type ยาวตามรูป parameter | table `ZIME001_LOG` · class `ZCL_ZIME001_LOG` · Custom Logic | 🔍 ร่างชื่อ object รอตอบ Q-18 ถึง Q-20 · **ลบก่อน transport** |
