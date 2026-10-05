@@ -41,7 +41,7 @@
 | `NNNN` สูงสุดเป็น 9999 แล้ว | ไม่แตะ (Q-10) |
 
 - `YYMMDD` = วันที่ปัจจุบัน UTC+7 (Q-07)
-- อ่านจาก `I_Batch` (Q-09) · กรอง plant หรือไม่ รอ Q-13
+- อ่านจาก `I_Batch` (Q-09) · ไม่กรอง plant (Q-13)
 - batch ที่สร้างพร้อมกันยังไม่ commit อาจได้เลขซ้ำ ผู้ใช้ยอมรับความเสี่ยง (Q-12)
 
 ## Phase
@@ -50,6 +50,6 @@
 |---|---|---|
 | 0 | Repo + เอกสาร | ✅ |
 | 1 | `ZCL_ZIME001=>is_valid_batch_format( )` + ABAP Unit + release C1 (Use in Key User Apps) | ✅ `aa5f697` (2026-10-05) |
-| 2 | `ZCL_ZIME001=>generate_batch_number( )` อ่าน batch ล่าสุดจาก CDS แล้ว +1 | ⬜ รอ Q-13 |
+| 2 | `ZCL_ZIME001=>generate_batch_number( )` อ่าน batch ล่าสุดจาก CDS แล้ว +1 | ⬜ รอ confirm ชื่อ + Q-14 Q-15 |
 | 3 | Custom Logic `YY1_AFTER_BATCH_NUMBER_INT` เรียก 2 method แล้วกำหนด `batch_out` | ⬜ |
 | 4 | ทดสอบ end-to-end + transport | ⬜ |
