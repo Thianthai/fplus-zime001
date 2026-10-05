@@ -23,7 +23,7 @@
 | Q-19 | **แยก class log** | ✅ **ปิด 2026-10-05** — แยกเป็น `ZCL_ZIME001_LOG` ไม่แตะ `ZCL_ZIME001` |
 | Q-20 | **สวิตช์ปิด log** | ✅ **ปิด 2026-10-05** — constant `gc_active` ใน `ZCL_ZIME001_LOG` |
 | Q-21 | **ใครเป็นคนกำหนด case** | ✅ **ปิด 2026-10-05** — draft ไว้ก่อน ค่อยแก้ทีหลังเมื่อได้ log · ตอนนี้ fix `CASE_A` |
-| Q-22 | **อ่านสถานะ release + ScheduledStartDate จาก CDS ไหน** — `I_ManufacturingOrder` | ผู้ใช้ส่ง source มาให้ | ⬜ รอ source |
+| Q-22 | **อ่านสถานะ release + ScheduledStartDate จาก CDS ไหน** | ✅ **ปิด 2026-10-05 (draft)** — `I_ManufacturingOrder`: วันที่ = `MfgOrderScheduledStartDate` · ไม่มี field `OrderIsReleased` -> ใช้ `MfgOrderActualReleaseDate IS NOT INITIAL` แทน (ทางเลือก: status `I0002` ผ่าน `_MfgOrderStatus`) |
 | Q-23 | **จังหวะเวลา** | ✅ **ปิด 2026-10-05 (draft)** — อ่านไม่เจอหรือยังไม่ released -> ข้าม ไม่แตะ `batch_out` · ของจริงค่อยแก้ |
 | Q-24 | **order type เช็คจากไหน** | ✅ **ปิด 2026-10-05** — `batch_allocation-ordertype` |
 | Q-25 | **CASE_A validate `batch_in` หรือไม่** | ✅ **ปิด 2026-10-05** — ไม่ใช้กฎเดิม ใช้วันที่จาก ScheduledStartDate |
