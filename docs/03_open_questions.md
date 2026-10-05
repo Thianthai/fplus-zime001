@@ -29,3 +29,5 @@
 | Q-25 | **CASE_A validate `batch_in` หรือไม่** | ✅ **ปิด 2026-10-05** — ไม่ใช้กฎเดิม ใช้วันที่จาก ScheduledStartDate |
 | Q-26 | **ส่งวันที่เข้า `generate_batch_number`** | ✅ **ปิด 2026-10-05** — เพิ่ม optional `iv_date` ใน method เดิม · วันที่ปัจจุบันใช้ `zcl_utility=>get_local_datetime( )` (package `ZBCUTILITY`) แทนการบวก 7 ชม. เอง |
 | Q-27 | **constant parameter** | ✅ **ปิด 2026-10-05** — `zcl_param=>create_instance( iv_company_code = '' iv_module_id = 'MM' )` · app `IME001` · param `PRODUCTION_ORDER_TYPE` · ไม่เจอ -> ข้าม |
+| Q-28 | **เช็ค released ด้วย status แทนวันที่** — `I_ManufacturingOrderStatus` (key `ManufacturingOrder` + `StatusCode`) มี row ต่อ status ที่เคยถูก set · เสนอ `StatusCode = 'I0002'` (REL) และ `StatusIsInactive = abap_false` แม่นกว่า `MfgOrderActualReleaseDate` ที่ค้างอยู่แม้ยกเลิก release · ต้องเช็ค release C1 | ผู้ใช้ | ⬜ |
+| Q-29 | **Partially released (`I0042` PREL) นับเป็น released หรือไม่** | ผู้ใช้ | ⬜ |
