@@ -111,8 +111,8 @@ CLASS zcl_zime001 DEFINITION
       gc_running_zero     TYPE n LENGTH 4 VALUE '0000',
       "! running number สูงสุดที่ยอมให้ใช้
       gc_running_max      TYPE i VALUE 9999,
-      "! system status REL ของ production order
-      gc_status_released  TYPE c LENGTH 5 VALUE 'I0002'.
+      "! ตัวแรกของเลข order ชั่วคราวที่ระบบให้ระหว่างสร้าง order ที่ยังไม่ save
+      gc_temporary_order  TYPE c LENGTH 1 VALUE '%'.
 
     CONSTANTS:
       "! key ของ constant parameter ใน ZTBC_PARAM
@@ -152,8 +152,8 @@ CLASS zcl_zime001 DEFINITION
       RETURNING VALUE(rv_batch) TYPE charg_d.
 
     "! เลข batch ของ production order
+    "! BAdI ถูกเรียกตอน release ของ order เพราะ order type ตั้งให้สร้าง batch ตอน release
     "! order type ต้องอยู่ใน constant parameter
-    "! order ต้อง released อยู่
     "! YYMMDD มาจากวันเริ่มตามแผนของ order
     "! @parameter is_batch_allocation | parameter BATCH_ALLOCATION ของ BAdI
     "! @parameter rv_batch            | เลข batch ใหม่ หรือค่าว่างเมื่อไม่เข้าเงื่อนไข
@@ -167,10 +167,8 @@ ENDCLASS.
 CLASS zcl_zime001 IMPLEMENTATION.
 
   METHOD is_valid_batch_format.
-
     rv_valid = check_batch_format( iv_batch        = iv_batch
                                    iv_current_date = get_current_date( ) ).
-
   ENDMETHOD.
 
 
@@ -216,11 +214,9 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
 
   METHOD get_current_date.
-
     " วันที่ตามเวลา local
     " ZCL_UTILITY อ่าน timezone จาก constant parameter ถ้าไม่มีจะใช้ UTC+7
     zcl_utility=>get_local_datetime( IMPORTING ev_date = rv_date ).
-
   ENDMETHOD.
 
 
@@ -279,7 +275,6 @@ CLASS zcl_zime001 IMPLEMENTATION.
       ENDIF.
 
       lv_running = lv_batch+6(4).
-
       IF lv_running > lv_max_running.
         lv_max_running = lv_running.
       ENDIF.
@@ -301,6 +296,14 @@ CLASS zcl_zime001 IMPLEMENTATION.
   METHOD get_batch_case_a.
 
     DATA lr_order_type TYPE RANGE OF ty_order_type.
+    DATA lv_order_type TYPE ty_order_type.
+
+    " order ที่ยังไม่ save มีเลขชั่วคราว จึงอ่านวันเริ่มตามแผนจาก DB ไม่ได้
+    " ข้ามไปใช้เลข batch ปกติ
+    " process ที่ตกลงไว้คือสร้าง order ก่อน แล้วค่อย release ทีหลัง
+    IF is_batch_allocation-manufacturingorder(1) = gc_temporary_order.
+      RETURN.
+    ENDIF.
 
     " order type ต้องอยู่ใน constant parameter
     " ไม่เจอ parameter -> ไม่สร้างเลข batch
@@ -315,32 +318,23 @@ CLASS zcl_zime001 IMPLEMENTATION.
         RETURN.
     ENDTRY.
 
-    IF is_batch_allocation-ordertype NOT IN lr_order_type.
+    " order type ใน config มีตัวอักษรที่มองไม่เห็นติดมา
+    " ล้างออกก่อนเทียบกับ constant parameter
+    lv_order_type = zcl_param=>sanitize( is_batch_allocation-ordertype ).
+
+    IF lv_order_type NOT IN lr_order_type.
       RETURN.
     ENDIF.
 
     " อ่านวันเริ่มตามแผนของ order
-    " order ที่ยังไม่ถูกบันทึกลง DB จะอ่านไม่เจอ -> ไม่สร้างเลข batch
+    " ไม่เช็ค status REL เพราะ BAdI ถูกเรียกตอน release ซึ่ง status ยังไม่ถูกบันทึก
+    " อ่านไม่เจอ -> ไม่สร้างเลข batch
     SELECT SINGLE MfgOrderScheduledStartDate
       FROM I_ManufacturingOrder WITH PRIVILEGED ACCESS
       WHERE ManufacturingOrder = @is_batch_allocation-manufacturingorder
       INTO @DATA(lv_start_date).
 
     IF sy-subrc <> 0 OR lv_start_date IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    " order ต้องมี status REL ที่ยัง active อยู่
-    " REL ที่ถูกยกเลิกไปแล้วไม่นับ
-    " partially released ไม่นับ
-    SELECT SINGLE @abap_true
-      FROM I_ManufacturingOrderStatus WITH PRIVILEGED ACCESS
-      WHERE ManufacturingOrder = @is_batch_allocation-manufacturingorder
-        AND StatusCode         = @gc_status_released
-        AND StatusIsInactive   = @abap_false
-      INTO @DATA(lv_is_released).
-
-    IF lv_is_released = abap_false.
       RETURN.
     ENDIF.
 
