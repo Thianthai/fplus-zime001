@@ -320,7 +320,7 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
     " order type ใน config มีตัวอักษรที่มองไม่เห็นติดมา
     " ต้อง clear ออกก่อนเทียบกับ constant parameter
-    lv_order_type = zcl_param=>remove_invisible_char( is_batch_allocation-ordertype ).
+    lv_order_type = zcl_utility=>remove_invisible_char( is_batch_allocation-ordertype ).
 
     IF lv_order_type NOT IN lr_order_type.
       RETURN.
