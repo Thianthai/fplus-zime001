@@ -31,7 +31,7 @@
 | Q-27 | **constant parameter** | ✅ **ปิด 2026-10-05** — `zcl_param=>create_instance( iv_company_code = '' iv_module_id = 'MM' )` · app `IME001` · param `PRODUCTION_ORDER_TYPE` · ไม่เจอ -> ข้าม |
 | Q-28 | **เช็ค released ด้วย status** | ✅ **ปิด 2026-10-05** — `I_ManufacturingOrderStatus` `StatusCode = 'I0002'` + `StatusIsInactive = abap_false` (release C1 ผู้ใช้เช็คแล้ว) |
 | Q-29 | **PREL นับเป็น released หรือไม่** | ✅ **ปิด 2026-10-05** — ไม่นับ |
-| Q-30 | **ฟังก์ชันนอลทำอะไรในแต่ละ app** — CO01 สร้างพร้อม Release · CO02 แก้ Stock Type แล้ว Release · **Mass Processing ยังไม่ทราบ action และ status หลังทำยังเป็น CRTD** | ฟังก์ชันนอล | 🟨 เหลือ Mass Processing |
+| Q-30 | **ฟังก์ชันนอลทำอะไรในแต่ละ app** | ✅ **ปิด 2026-10-06** — CO01 สร้างพร้อม Release · CO02 แก้ Stock Type แล้ว Release · config `ZFG` สร้าง batch ตอน release · Mass Processing ที่จอแสดง CRTD ไม่กระทบ logic (ถ้า release ไม่สำเร็จ batch ก็ไม่ถูก save) |
 | Q-31 | **CO01 ไม่มี order ใน DB** จะเอา YYMMDD จากไหน — หาแล้วไม่มี released API ที่อ่านได้ระหว่างทำรายการ · เลือก (ก) วันที่ปัจจุบัน (ข) ข้าม (ค) ปรับ process | ผู้ใช้ + ฟังก์ชันนอล | ⬜ |
 | Q-32 | **`ordertype` มี U+200B ต่อท้าย** | ✅ **ปิด 2026-10-06** — ใช้ `zcl_param=>sanitize( )` ในโค้ด |
-| Q-33 | **ถ้า BAdI ถูกเรียกตอน Release อยู่แล้ว** (config = at release) ตัดการเช็ค status `I0002` ใน DB ทิ้งหรือไม่ เพราะตอนนั้น status ยังไม่ถูกบันทึก | ผู้ใช้ | ⬜ |
+| Q-33 | **ตัดการเช็ค status `I0002` ใน DB หรือไม่** | ✅ **ปิด 2026-10-06** — order type `ZFG` ตั้ง automatic batch creation **ตอน release** (ฟังก์ชันนอลยืนยัน) BAdI ถูกเรียก = กำลัง release -> ตัดการเช็ค status ทิ้ง |

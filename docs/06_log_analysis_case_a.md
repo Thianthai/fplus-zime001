@@ -50,3 +50,12 @@
 - ABAP Cloud อ่าน memory ของ transaction ไม่ได้
 ทางเลือก: (ก) ใช้วันที่ปัจจุบัน local เฉพาะ order ที่เลขขึ้นต้นด้วย `%` (ข) ข้าม ใช้เลขปกติ (ค) ปรับ process ให้สร้างก่อนแล้วค่อย release ใน CO02 หรือ Mass Processing
 
+## Logic ใหม่ของ CASE_A (เสนอ 2026-10-06)
+
+1. ล้าง `ordertype` ด้วย `zcl_param=>sanitize( )` แล้วเช็คกับ constant parameter `PRODUCTION_ORDER_TYPE`
+2. **ไม่เช็ค status REL** เพราะ `ZFG` สร้าง batch ตอน release อยู่แล้ว (Q-33)
+3. YYMMDD
+   - เลข order ขึ้นต้นด้วย `%` (CO01 ยังไม่ save) -> รอผู้ใช้เลือกทางใน Q-31
+   - เลข order จริง (CO02 · Mass Processing) -> `MfgOrderScheduledStartDate` จาก `I_ManufacturingOrder` · อ่านไม่เจอ -> ข้าม
+4. NNNN ตาม logic เดิมจาก `I_Batch`
+
