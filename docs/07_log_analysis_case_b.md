@@ -33,3 +33,15 @@
 | G5 | BAdI ไม่รู้ว่ามาจาก app ไหน | GR อ้างอิง PO จาก app อื่น (ถ้ามี) จะมีหน้าตาเดียวกันและเข้า CASE_B ด้วย (Q-36) |
 
 ## คำถาม (Q-34 ถึง Q-37 ใน `03_open_questions.md`)
+
+## Constant parameter บน tenant (ผู้ใช้ maintain 2026-10-06)
+
+| Parameter | Additional Parameter | Sign | Option | Low | ใช้ที่ |
+|---|---|---|---|---|---|
+| `MOVEMENT_TYPE` | `GOODS_RECEIPT` | I | EQ | 101 | CASE_B |
+| `REF_DOC_TYPE` | `PURCHASE_ORDER` | I | EQ | B | CASE_B |
+| `PRODUCTION_ORDER_TYPE` | | I | EQ | ZFG | CASE_A |
+| `PO_DOCTYPE_STO` | | E | EQ | ZP25 | ยังไม่ได้ใช้ใน code |
+
+code ส่ง `iv_param_ext` ทุกครั้งที่ parameter มี Additional Parameter เพื่อไม่ให้ไปปนกับ row ของ case อื่นที่จะเพิ่มทีหลัง
+
