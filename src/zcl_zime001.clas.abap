@@ -60,6 +60,8 @@ CLASS zcl_zime001 DEFINITION
       BEGIN OF gc_case,
         "! production order จาก Create, Change และ Mass Processing
         a TYPE ty_case VALUE 'CASE_A',
+        "! goods receipt อ้างอิง purchase order จาก MIGO
+        b TYPE ty_case VALUE 'CASE_B',
       END OF gc_case.
 
     "! ตรวจ format ของเลข batch YYMMDDNNNN เทียบกับวันที่ปัจจุบันตามเวลา local
@@ -98,9 +100,13 @@ CLASS zcl_zime001 DEFINITION
 
     TYPES:
       "! รายการเลข batch
-      tt_batch      TYPE STANDARD TABLE OF charg_d WITH EMPTY KEY,
+      tt_batch          TYPE STANDARD TABLE OF charg_d WITH EMPTY KEY,
       "! order type ของ production order
-      ty_order_type TYPE c LENGTH 4.
+      ty_order_type     TYPE c LENGTH 4,
+      "! movement type ของ goods movement
+      ty_movement_type  TYPE c LENGTH 3,
+      "! ประเภทเอกสารที่ goods movement อ้างอิง
+      ty_ref_doc_type   TYPE c LENGTH 1.
 
     CONSTANTS:
       "! ความยาวของเลข batch ตาม format YYMMDDNNNN
@@ -123,6 +129,14 @@ CLASS zcl_zime001 DEFINITION
         app_id                TYPE ztbc_param-app_id     VALUE 'IME001',
         "! order type ของ production order ที่ต้องสร้างเลข batch
         production_order_type TYPE ztbc_param-param_name VALUE 'PRODUCTION_ORDER_TYPE',
+        "! movement type ที่ต้องสร้างเลข batch
+        movement_type         TYPE ztbc_param-param_name VALUE 'MOVEMENT_TYPE',
+        "! ประเภทเอกสารอ้างอิงที่ต้องสร้างเลข batch
+        ref_doc_type          TYPE ztbc_param-param_name VALUE 'REF_DOC_TYPE',
+        "! additional parameter ของ goods receipt
+        ext_goods_receipt     TYPE ztbc_param-param_ext  VALUE 'GOODS_RECEIPT',
+        "! additional parameter ของ purchase order
+        ext_purchase_order    TYPE ztbc_param-param_ext  VALUE 'PURCHASE_ORDER',
       END OF gc_param.
 
     "! วันที่ปัจจุบันตามเวลา local
@@ -158,6 +172,16 @@ CLASS zcl_zime001 DEFINITION
     "! @parameter is_batch_allocation | parameter BATCH_ALLOCATION ของ BAdI
     "! @parameter rv_batch            | เลข batch ใหม่ หรือค่าว่างเมื่อไม่เข้าเงื่อนไข
     CLASS-METHODS get_batch_case_a
+      IMPORTING is_batch_allocation TYPE ty_batch_allocation
+      RETURNING VALUE(rv_batch)     TYPE charg_d.
+
+    "! เลข batch ของ goods receipt อ้างอิง purchase order
+    "! movement type และประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter
+    "! material ต้องเปิดใช้ batch management
+    "! YYMMDD ใช้วันที่ปัจจุบันตามเวลา local เพราะ BAdI ไม่ส่ง posting date มา
+    "! @parameter is_batch_allocation | parameter BATCH_ALLOCATION ของ BAdI
+    "! @parameter rv_batch            | เลข batch ใหม่ หรือค่าว่างเมื่อไม่เข้าเงื่อนไข
+    CLASS-METHODS get_batch_case_b
       IMPORTING is_batch_allocation TYPE ty_batch_allocation
       RETURNING VALUE(rv_batch)     TYPE charg_d.
 
@@ -208,6 +232,8 @@ CLASS zcl_zime001 IMPLEMENTATION.
     CASE iv_case.
       WHEN gc_case-a.
         rv_batch = get_batch_case_a( is_batch_allocation ).
+      WHEN gc_case-b.
+        rv_batch = get_batch_case_b( is_batch_allocation ).
     ENDCASE.
 
   ENDMETHOD.
@@ -340,6 +366,61 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
     rv_batch = generate_batch_number( iv_material = is_batch_allocation-material
                                       iv_date     = lv_start_date ).
+
+  ENDMETHOD.
+
+
+  METHOD get_batch_case_b.
+
+    DATA lr_movement_type TYPE RANGE OF ty_movement_type.
+    DATA lr_ref_doc_type  TYPE RANGE OF ty_ref_doc_type.
+
+    " ต้องรับของอ้างอิง purchase order
+    " รับของผ่าน inbound delivery ไม่ใช่ case นี้
+    IF is_batch_allocation-purchaseorder IS INITIAL
+    OR is_batch_allocation-deliverydocument IS NOT INITIAL.
+      RETURN.
+    ENDIF.
+
+    " movement type และประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter
+    " ไม่เจอ parameter -> ไม่สร้างเลข batch
+    DATA(lo_param) = zcl_param=>create_instance( iv_company_code = ''
+                                                 iv_module_id    = gc_param-module_id ).
+
+    TRY.
+        lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
+                                       iv_param_name = gc_param-movement_type
+                                       iv_param_ext  = gc_param-ext_goods_receipt
+                             IMPORTING et_range      = lr_movement_type ).
+
+        lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
+                                       iv_param_name = gc_param-ref_doc_type
+                                       iv_param_ext  = gc_param-ext_purchase_order
+                             IMPORTING et_range      = lr_ref_doc_type ).
+      CATCH zcx_param.
+        RETURN.
+    ENDTRY.
+
+    IF is_batch_allocation-goodsmovementtype       NOT IN lr_movement_type
+    OR is_batch_allocation-goodsmovementrefdoctype NOT IN lr_ref_doc_type.
+      RETURN.
+    ENDIF.
+
+    " material ต้องเปิดใช้ batch management
+    " อ่านไม่เจอ -> ไม่สร้างเลข batch
+    SELECT SINGLE IsBatchManagementRequired
+      FROM I_Product WITH PRIVILEGED ACCESS
+      WHERE Product = @is_batch_allocation-material
+      INTO @DATA(lv_batch_required).
+
+    IF lv_batch_required = abap_false.
+      RETURN.
+    ENDIF.
+
+    " BAdI ไม่ส่ง posting date มา และเอกสารยังไม่ถูกบันทึก
+    " ใช้วันที่ปัจจุบันตามเวลา local แทน
+    " ถ้า user แก้ posting date เป็นวันอื่น YYMMDD จะไม่ตรงกับ posting date
+    rv_batch = generate_batch_number( is_batch_allocation-material ).
 
   ENDMETHOD.
 

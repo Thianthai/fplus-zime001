@@ -90,6 +90,8 @@ CLASS ltc_batch_number DEFINITION FINAL FOR TESTING
     METHODS next_year_date           FOR TESTING.
     "! case ที่ยังไม่รู้จักต้องได้ค่าว่าง
     METHODS unknown_case_gives_blank FOR TESTING.
+    "! CASE_B ที่ไม่มี purchase order ต้องได้ค่าว่างโดยไม่อ่าน DB
+    METHODS case_b_without_po_blank  FOR TESTING.
 
 ENDCLASS.
 
@@ -242,6 +244,15 @@ CLASS ltc_batch_number IMPLEMENTATION.
                                                  iv_case             = 'CASE_Z'
                                                  is_batch_allocation = VALUE #( ) )
                                          msg = 'case ที่ยังไม่รู้จัก' ).
+  ENDMETHOD.
+
+
+  METHOD case_b_without_po_blank.
+    cl_abap_unit_assert=>assert_initial( act = zcl_zime001=>get_batch_number(
+                                                 iv_case             = zcl_zime001=>gc_case-b
+                                                 is_batch_allocation = VALUE #( goodsmovementtype       = '101'
+                                                                                goodsmovementrefdoctype = 'B' ) )
+                                         msg = 'CASE_B ไม่มี purchase order' ).
   ENDMETHOD.
 
 ENDCLASS.
