@@ -40,7 +40,7 @@
 
 - CO01 และ CO02: BAdI ถูกเรียก **ตอนกด Release** ก่อน save -> status REL ยังไม่อยู่ใน DB ตอนนั้น
 - Mass Processing: batch ถูกสร้างทั้งที่หน้าจอยังแสดง CRTD -> ต้องรู้ action และ status จริงหลัง save ก่อนสรุปว่า "BAdI ถูกเรียก = กำลัง release"
-- ผู้ใช้เลือกแก้ U+200B ด้วย `zcl_param=>sanitize( )` ในโค้ด (Q-32)
+- ผู้ใช้เลือกแก้ U+200B ด้วย `zcl_param=>sanitize( )` ในโค้ด (Q-32) — ภายหลังย้ายเป็น `zcl_utility=>remove_invisible_char( )` (`5628054`)
 
 ## แหล่ง YYMMDD สำหรับ CO01 (Q-31)
 
@@ -52,7 +52,7 @@
 
 ## Logic ใหม่ของ CASE_A (เสนอ 2026-10-06)
 
-1. ล้าง `ordertype` ด้วย `zcl_param=>sanitize( )` แล้วเช็คกับ constant parameter `PRODUCTION_ORDER_TYPE`
+1. ล้าง `ordertype` ด้วย `zcl_utility=>remove_invisible_char( )` (เดิม `zcl_param=>sanitize( )`) แล้วเช็คกับ constant parameter `PRODUCTION_ORDER_TYPE`
 2. **ไม่เช็ค status REL** เพราะ `ZFG` สร้าง batch ตอน release อยู่แล้ว (Q-33)
 3. YYMMDD
    - เลข order ขึ้นต้นด้วย `%` (CO01 ยังไม่ save) -> ข้าม ใช้เลขปกติ (Q-31 เลือกปรับ process ให้ release ทีหลัง)

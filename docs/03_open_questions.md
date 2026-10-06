@@ -33,5 +33,5 @@
 | Q-29 | **PREL นับเป็น released หรือไม่** | ✅ **ปิด 2026-10-05** — ไม่นับ |
 | Q-30 | **ฟังก์ชันนอลทำอะไรในแต่ละ app** | ✅ **ปิด 2026-10-06** — CO01 สร้างพร้อม Release · CO02 แก้ Stock Type แล้ว Release · config `ZFG` สร้าง batch ตอน release · Mass Processing ที่จอแสดง CRTD ไม่กระทบ logic (ถ้า release ไม่สำเร็จ batch ก็ไม่ถูก save) |
 | Q-31 | **CO01 ไม่มี order ใน DB** | ✅ **ปิด 2026-10-06** — (ค) ปรับ process: สร้างใน CO01 โดยไม่ Release แล้วค่อย release ใน CO02 / Mass Processing · code ข้ามเลข order ที่ขึ้นต้นด้วย `%` |
-| Q-32 | **`ordertype` มี U+200B ต่อท้าย** | ✅ **ปิด 2026-10-06** — ใช้ `zcl_param=>sanitize( )` ในโค้ด |
+| Q-32 | **`ordertype` มี U+200B ต่อท้าย** | ✅ **ปิด 2026-10-06** — ล้างในโค้ดด้วย `zcl_utility=>remove_invisible_char( )` (`5628054`) · เดิมใช้ `zcl_param=>sanitize( )` ซึ่งย้ายไป `ZCL_UTILITY` แล้ว (`fplus-zbcparam` `8cb234f` · `fplus-zbcutility` `6b260a1`) |
 | Q-33 | **ตัดการเช็ค status `I0002` ใน DB หรือไม่** | ✅ **ปิด 2026-10-06** — order type `ZFG` ตั้ง automatic batch creation **ตอน release** (ฟังก์ชันนอลยืนยัน) BAdI ถูกเรียก = กำลัง release -> ตัดการเช็ค status ทิ้ง |
