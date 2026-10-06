@@ -42,3 +42,4 @@ batch_out
 | [docs/04_custom_logic.md](docs/04_custom_logic.md) | สำเนา code ของ Custom Logic และผลทดสอบ |
 | [docs/05_issue_log.md](docs/05_issue_log.md) | issue จากฟังก์ชันนอล และ requirement ที่เพิ่มเข้ามา |
 | [docs/06_log_analysis_case_a.md](docs/06_log_analysis_case_a.md) | วิเคราะห์ log ของ CASE_A |
+| [docs/07_log_analysis_case_b.md](docs/07_log_analysis_case_b.md) | วิเคราะห์ log ของ CASE_B |

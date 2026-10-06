@@ -35,3 +35,7 @@
 | Q-31 | **CO01 ไม่มี order ใน DB** | ✅ **ปิด 2026-10-06** — (ค) ปรับ process: สร้างใน CO01 โดยไม่ Release แล้วค่อย release ใน CO02 / Mass Processing · code ข้ามเลข order ที่ขึ้นต้นด้วย `%` |
 | Q-32 | **`ordertype` มี U+200B ต่อท้าย** | ✅ **ปิด 2026-10-06** — ล้างในโค้ดด้วย `zcl_utility=>remove_invisible_char( )` (`5628054`) · เดิมใช้ `zcl_param=>sanitize( )` ซึ่งย้ายไป `ZCL_UTILITY` แล้ว (`fplus-zbcparam` `8cb234f` · `fplus-zbcutility` `6b260a1`) |
 | Q-33 | **ตัดการเช็ค status `I0002` ใน DB หรือไม่** | ✅ **ปิด 2026-10-06** — order type `ZFG` ตั้ง automatic batch creation **ตอน release** (ฟังก์ชันนอลยืนยัน) BAdI ถูกเรียก = กำลัง release -> ตัดการเช็ค status ทิ้ง |
+| Q-34 | **CASE_B ไม่มี Posting Date** ใน BAdI และเอกสารยังไม่ post · ทางเลือก: วันที่ปัจจุบัน local (= ค่า default ของ Posting Date ใน MIGO) | ผู้ใช้ | ⬜ |
+| Q-35 | **movement type ที่รองรับ** — เฉพาะ `101` หรือรวม `103` / `105` / อื่น ๆ · fix ใน code หรือเก็บใน constant parameter | ผู้ใช้ | ⬜ |
+| Q-36 | **แยก app ไม่ได้** — GR อ้างอิง PO จาก app อื่นจะเข้า CASE_B ด้วย รับได้หรือไม่ | ผู้ใช้ | ⬜ |
+| Q-37 | **BAdI ถูกเรียกตอน Check ไม่ใช่ Post** — เลขที่ได้ตอน Check ใช้ต่อตอน Post · requirement "กด Post" จึงหมายถึงจังหวะที่ระบบจองเลขแทน รับได้หรือไม่ | ผู้ใช้ | ⬜ |
