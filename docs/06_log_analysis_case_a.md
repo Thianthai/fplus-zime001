@@ -55,7 +55,7 @@
 1. ล้าง `ordertype` ด้วย `zcl_param=>sanitize( )` แล้วเช็คกับ constant parameter `PRODUCTION_ORDER_TYPE`
 2. **ไม่เช็ค status REL** เพราะ `ZFG` สร้าง batch ตอน release อยู่แล้ว (Q-33)
 3. YYMMDD
-   - เลข order ขึ้นต้นด้วย `%` (CO01 ยังไม่ save) -> รอผู้ใช้เลือกทางใน Q-31
+   - เลข order ขึ้นต้นด้วย `%` (CO01 ยังไม่ save) -> ข้าม ใช้เลขปกติ (Q-31 เลือกปรับ process ให้ release ทีหลัง)
    - เลข order จริง (CO02 · Mass Processing) -> `MfgOrderScheduledStartDate` จาก `I_ManufacturingOrder` · อ่านไม่เจอ -> ข้าม
 4. NNNN ตาม logic เดิมจาก `I_Batch`
 
