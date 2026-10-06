@@ -31,3 +31,7 @@
 | Q-27 | **constant parameter** | ✅ **ปิด 2026-10-05** — `zcl_param=>create_instance( iv_company_code = '' iv_module_id = 'MM' )` · app `IME001` · param `PRODUCTION_ORDER_TYPE` · ไม่เจอ -> ข้าม |
 | Q-28 | **เช็ค released ด้วย status** | ✅ **ปิด 2026-10-05** — `I_ManufacturingOrderStatus` `StatusCode = 'I0002'` + `StatusIsInactive = abap_false` (release C1 ผู้ใช้เช็คแล้ว) |
 | Q-29 | **PREL นับเป็น released หรือไม่** | ✅ **ปิด 2026-10-05** — ไม่นับ |
+| Q-30 | **ฟังก์ชันนอลทำอะไรในแต่ละ app ตอนทดสอบ** — CO01 สร้างอย่างเดียวหรือสร้างพร้อม Release · CO02 แก้อะไร กด Release ไหม · Mass Processing ใช้ action อะไร · และ order type `ZFG` ตั้ง automatic batch creation ไว้ตอน creation หรือ release | ฟังก์ชันนอล | ⬜ |
+| Q-31 | **CO01 ไม่มี order ใน DB** (`%00000000001`) จะเอา YYMMDD จากไหน และยังต้องสร้างเลข batch ใน CO01 หรือไม่ | ผู้ใช้ + ฟังก์ชันนอล | ⬜ |
+| Q-32 | **`ordertype` มี U+200B ต่อท้าย** — แก้ในโค้ดด้วย `zcl_param=>sanitize( )` ก่อนเทียบ หรือให้ฟังก์ชันนอลแก้ config order type | ผู้ใช้ | ⬜ |
+| Q-33 | **ถ้า BAdI ถูกเรียกตอน Release อยู่แล้ว** (config = at release) ตัดการเช็ค status `I0002` ใน DB ทิ้งหรือไม่ เพราะตอนนั้น status ยังไม่ถูกบันทึก | ผู้ใช้ | ⬜ |
