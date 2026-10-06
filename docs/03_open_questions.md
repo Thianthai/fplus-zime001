@@ -39,3 +39,4 @@
 | Q-35 | **movement type ที่รองรับ** | ✅ **ปิด 2026-10-06** — ตอนนี้ `101` · เก็บใน constant parameter `IME001` / `GR_MOVEMENT_TYPE` (module MM) เพิ่มทีหลังได้ |
 | Q-36 | **แยก app ไม่ได้** — ต้อง support เฉพาะ MIGO แต่ BAdI ไม่บอก app · GR อ้างอิง PO จาก app อื่นจะเข้า CASE_B ด้วย | ผู้ใช้ | ⬜ OQ ค้าง (2026-10-06) หาทางออกหลังทำครบทุก case |
 | Q-37 | **BAdI ถูกเรียกตอน Check ไม่ใช่ Post** | ✅ **ปิด 2026-10-06** — ยอมรับ |
+| Q-38 | **constant parameter `PO_DOCTYPE_STO` (E EQ ZP25) ใช้กับ case ไหน** — บน tenant มีแต่ยังไม่มี requirement · ถ้าใช้กับ CASE_B ต้องอ่าน PO type เพิ่ม เพราะ `purchaseordertype` ใน log ของ MIGO ว่าง | ผู้ใช้ | ⬜ รอดู logic ของ case ถัดไป |
