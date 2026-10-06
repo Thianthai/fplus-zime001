@@ -29,3 +29,24 @@
 | F7 | `material` เป็น internal format 18 หลักเติมศูนย์ | ตรงกับ `I_Batch-Material` ไม่ต้องแปลง |
 
 ## คำถามที่ต้องตอบก่อนแก้ (Q-30 ถึง Q-33 ใน `03_open_questions.md`)
+
+## ข้อมูลเพิ่มจากฟังก์ชันนอล (2026-10-06)
+
+| App | ทำอะไร | status หลังทำ | batch ที่ได้ |
+|---|---|---|---|
+| CO01 | สร้างพร้อมกด Release · ข้อความ `Release carried out` | REL MSPT BASC BCRQ | 0000000109 |
+| CO02 | แก้ Stock Type แล้วกด Release · ข้อความ `Release carried out` | REL MSPT PRC BASC BCRQ | 0000000110 |
+| Mass Processing | ยังไม่ทราบ action · ข้อความ `Mass processing executed - 3 log(s) created (0 / 0 / 3 / 0)` และไอคอน warning ทุกแถว | **CRTD** MSPT PRC BC... (ยังไม่ released) | 0000000111 ถึง 0000000113 |
+
+- CO01 และ CO02: BAdI ถูกเรียก **ตอนกด Release** ก่อน save -> status REL ยังไม่อยู่ใน DB ตอนนั้น
+- Mass Processing: batch ถูกสร้างทั้งที่หน้าจอยังแสดง CRTD -> ต้องรู้ action และ status จริงหลัง save ก่อนสรุปว่า "BAdI ถูกเรียก = กำลัง release"
+- ผู้ใช้เลือกแก้ U+200B ด้วย `zcl_param=>sanitize( )` ในโค้ด (Q-32)
+
+## แหล่ง YYMMDD สำหรับ CO01 (Q-31)
+
+ตอน BAdI ถูกเรียกใน CO01 order ยังไม่ถูกบันทึก ไม่มี released API ไหนอ่านค่าระหว่างทำรายการได้
+- parameter ของ BAdI ไม่มีวันที่
+- `I_ManufacturingOrder` ยังไม่มี row
+- ABAP Cloud อ่าน memory ของ transaction ไม่ได้
+ทางเลือก: (ก) ใช้วันที่ปัจจุบัน local เฉพาะ order ที่เลขขึ้นต้นด้วย `%` (ข) ข้าม ใช้เลขปกติ (ค) ปรับ process ให้สร้างก่อนแล้วค่อย release ใน CO02 หรือ Mass Processing
+
