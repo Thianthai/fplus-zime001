@@ -39,4 +39,9 @@
 | Q-35 | **movement type ที่รองรับ** | ✅ **ปิด 2026-10-06** — ตอนนี้ `101` · เก็บใน constant parameter `IME001` / `GR_MOVEMENT_TYPE` (module MM) เพิ่มทีหลังได้ |
 | Q-36 | **แยก app ไม่ได้** — ต้อง support เฉพาะ MIGO แต่ BAdI ไม่บอก app · GR อ้างอิง PO จาก app อื่นจะเข้า CASE_B ด้วย | ผู้ใช้ | ⬜ OQ ค้าง (2026-10-06) หาทางออกหลังทำครบทุก case |
 | Q-37 | **BAdI ถูกเรียกตอน Check ไม่ใช่ Post** | ✅ **ปิด 2026-10-06** — ยอมรับ |
-| Q-38 | **constant parameter `PO_DOCTYPE_STO` (E EQ ZP25) ใช้กับ case ไหน** — บน tenant มีแต่ยังไม่มี requirement · ถ้าใช้กับ CASE_B ต้องอ่าน PO type เพิ่ม เพราะ `purchaseordertype` ใน log ของ MIGO ว่าง | ผู้ใช้ | ⬜ รอดู logic ของ case ถัดไป |
+| Q-38 | **constant parameter `PO_DOCTYPE_STO` ใช้กับ case ไหน** | ✅ **ปิด 2026-10-08** — ใช้กับ CASE_C (Inbound Delivery) ไม่ใช้กับ CASE_B |
+| Q-39 | **CASE_C ไม่มี Delivery Date** — VL31 เลข delivery ชั่วคราว `$` อ่าน DB ไม่ได้ · ทางเลือก: (ก) delivery date ของ PO schedule line จาก PO + item (ข) วันที่ปัจจุบัน local · VL32 เลข delivery จริงอ่าน header ได้ (ต้องหา view ที่ release) | ผู้ใช้ | ⬜ |
+| Q-40 | **PO type ไม่มีใน BAdI** (`purchaseordertype` ว่าง) — อ่านจาก `I_PurchaseOrderAPI01-PurchaseOrderType` (ต้องเช็ค release C1) | ผู้ใช้เช็คใน ADT | ⬜ |
+| Q-41 | **material เดียวกันหลาย item ต้องได้ batch เดียวกัน** — ใน save เดียวกัน `I_Batch` ยังไม่เห็น batch ของ item แรก จึงได้เลขเดียวกันเองถ้า YYMMDD เท่ากัน · ต้องทดสอบว่า standard ยอมให้ 2 item ใช้ batch ใหม่เลขเดียวกันใน save เดียวหรือไม่ | ผู้ใช้ทดสอบ | ⬜ |
+| Q-42 | **ขอบเขตของ "material เดียวกัน = batch เดียวกัน"** — เฉพาะใน delivery เดียวกันหรือไม่ · ถ้าคนละ PO item แล้ว delivery date ต่างกันล่ะ · VL32 เพิ่ม item ทีหลังต้องได้ batch เดิมของ item ที่ save ไปแล้วหรือไม่ | ผู้ใช้ | ⬜ |
+| Q-43 | **ยังไม่มี log ของ VL32** — ต้องรู้ว่า VL32 เรียก BAdI ตอนไหน และเลข delivery เป็นเลขจริงหรือไม่ | ฟังก์ชันนอล | ⬜ |
