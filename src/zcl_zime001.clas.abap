@@ -2,6 +2,7 @@
 "! logic ที่ Custom Logic YY1_AFTER_BATCH_NUMBER_INT เรียกใช้
 "! Custom Logic เป็นของ BAdI LOBM_AFTER_BATCH_NUMBER_INT
 "! class นี้ต้อง release C1 และเปิด Use in Key User Apps ไม่งั้น Custom Logic มองไม่เห็น
+"! ดูสรุปแต่ละ case ว่าเช็คอะไรและรองรับ app ไหนที่ constant gc_case
 CLASS zcl_zime001 DEFINITION
   PUBLIC
   FINAL
@@ -55,14 +56,41 @@ CLASS zcl_zime001 DEFINITION
       END OF ty_batch_allocation.
 
     CONSTANTS:
-      "! case ของธุรกรรมที่เรียก BAdI
-      "! ยังเป็นค่า draft รอ map กับข้อมูลจริงจาก log ของ BAdI
+      "! case ของธุรกรรมที่เรียก BAdI ตัวนี้
+      "! BAdI ไม่ส่งชื่อ app มา จึงแยก case จากค่าใน BATCH_ALLOCATION
+      "! ทุก case ต้องผ่านเงื่อนไขของตัวเองก่อน
+      "! ไม่ผ่านเงื่อนไขจะคืนค่าว่างและไม่แตะ BATCH_OUT
+      "! NNNN ของทุก case คือ running number ของ material ใน I_Batch ที่ขึ้นต้นด้วย YYMMDD เดียวกันบวก 1
       BEGIN OF gc_case,
-        "! production order จาก Create, Change และ Mass Processing
+        "! CASE_A production order
+        "! app: Create Production Order (CO01)
+        "! app: Change Production Order (CO02)
+        "! app: Mass Processing of Production Orders
+        "! BAdI ถูกเรียกตอน release เพราะ order type ตั้งให้สร้าง batch ตอน release
+        "! order ที่ยังไม่ save มีเลขขึ้นต้นด้วย % จะข้าม
+        "! ต้องสร้าง order ก่อน แล้วค่อย release ทีหลัง
+        "! order type ต้องอยู่ใน constant parameter PRODUCTION_ORDER_TYPE
+        "! YYMMDD มาจากวันเริ่มตามแผนของ order ใน I_ManufacturingOrder
         a TYPE ty_case VALUE 'CASE_A',
-        "! goods receipt อ้างอิง purchase order จาก MIGO
+        "! CASE_B goods receipt อ้างอิง purchase order
+        "! app: Goods Receipt (MIGO) action Goods Receipt คู่กับ reference document Purchase Order
+        "! ต้องมี purchase order และไม่มี inbound delivery
+        "! movement type ต้องอยู่ใน constant parameter MOVEMENT_TYPE ของ GOODS_RECEIPT
+        "! ประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter REF_DOC_TYPE ของ PURCHASE_ORDER
+        "! material ต้องเปิดใช้ batch management ใน I_Product
+        "! BAdI ถูกเรียกตอน Check และใช้เลขเดิมตอน Post
+        "! YYMMDD ใช้วันที่ปัจจุบันตามเวลา local เพราะ BAdI ไม่ส่ง posting date มา
+        "! GR อ้างอิง purchase order จาก app อื่นที่ส่งค่าเหมือนกันจะเข้า case นี้ด้วย
         b TYPE ty_case VALUE 'CASE_B',
-        "! inbound delivery อ้างอิง purchase order จาก Create Inbound Delivery
+        "! CASE_C inbound delivery อ้างอิง purchase order
+        "! app: Create Inbound Delivery (VL31)
+        "! Change Inbound Delivery (VL32) ไม่เรียก BAdI ตัวนี้
+        "! ต้องมี inbound delivery และ purchase order
+        "! ประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter REF_DOC_TYPE ของ PURCHASE_ORDER
+        "! PO type ที่ถูก exclude ใน constant parameter PO_DOCTYPE_STO ไม่สร้างเลข batch
+        "! material ต้องเปิดใช้ batch management ใน I_Product
+        "! material เดียวกันใน delivery เดียวกันได้ batch เดียวกับ item แรก
+        "! YYMMDD มาจาก delivery date ของ schedule line บรรทัดแรกของ PO item
         c TYPE ty_case VALUE 'CASE_C',
       END OF gc_case.
 
