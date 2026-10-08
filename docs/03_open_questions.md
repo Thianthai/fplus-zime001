@@ -45,5 +45,5 @@
 | Q-41 | **2 item ใช้ batch ใหม่เลขเดียวกันใน save เดียว** | ✅ **ปิด 2026-10-08** — ผู้ใช้ทดสอบแล้ว ระบบยอมให้ save |
 | Q-42 | **ขอบเขตของ "material เดียวกัน = batch เดียวกัน"** | ✅ **ปิด 2026-10-08** — เฉพาะใน delivery เดียวกัน · คนละ PO item วันที่ต่างกันก็ต้องได้เลขเดียวกัน ยึดเลขของ item แรก |
 | Q-43 | **log ของ VL32** | ✅ **ปิด 2026-10-08** — VL32 ไม่เรียก BAdI ตัวนี้ · CASE_C = VL31 เท่านั้น |
-| Q-44 | **field ของ `I_PurOrdScheduleLineAPI01`** — ใช้ schedule line บรรทัดแรก (ผู้ใช้ตอบ 2026-10-08) · รอ source เพื่อยืนยันชื่อ key และ field delivery date | ผู้ใช้ส่ง source | ⬜ |
+| Q-44 | **field ของ `I_PurOrdScheduleLineAPI01`** | ✅ **ปิด 2026-10-08** — key `PurchaseOrder` + `PurchaseOrderItem` + `PurchaseOrderScheduleLine` · ใช้ `ScheduleLineDeliveryDate` ของ schedule line เลขน้อยสุด (`ORDER BY` + `UP TO 1 ROWS`) |
 | Q-45 | **กันเลขค้างจาก delivery ก่อนหน้า** | ✅ **ปิด 2026-10-08** — ทิ้งเลขที่จำไว้แล้วสร้างใหม่ เมื่อ batch นั้นอยู่ใน `I_Batch` แล้ว หรือเลข item ไม่เพิ่มขึ้น |
