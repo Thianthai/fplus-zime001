@@ -40,8 +40,10 @@
 | Q-36 | **แยก app ไม่ได้** — ต้อง support เฉพาะ MIGO แต่ BAdI ไม่บอก app · GR อ้างอิง PO จาก app อื่นจะเข้า CASE_B ด้วย | ผู้ใช้ | ⬜ OQ ค้าง (2026-10-06) หาทางออกหลังทำครบทุก case |
 | Q-37 | **BAdI ถูกเรียกตอน Check ไม่ใช่ Post** | ✅ **ปิด 2026-10-06** — ยอมรับ |
 | Q-38 | **constant parameter `PO_DOCTYPE_STO` ใช้กับ case ไหน** | ✅ **ปิด 2026-10-08** — ใช้กับ CASE_C (Inbound Delivery) ไม่ใช้กับ CASE_B |
-| Q-39 | **CASE_C ไม่มี Delivery Date** — VL31 เลข delivery ชั่วคราว `$` อ่าน DB ไม่ได้ · ทางเลือก: (ก) delivery date ของ PO schedule line จาก PO + item (ข) วันที่ปัจจุบัน local · VL32 เลข delivery จริงอ่าน header ได้ (ต้องหา view ที่ release) | ผู้ใช้ | ⬜ |
-| Q-40 | **PO type ไม่มีใน BAdI** (`purchaseordertype` ว่าง) — อ่านจาก `I_PurchaseOrderAPI01-PurchaseOrderType` (ต้องเช็ค release C1) | ผู้ใช้เช็คใน ADT | ⬜ |
-| Q-41 | **material เดียวกันหลาย item ต้องได้ batch เดียวกัน** — ใน save เดียวกัน `I_Batch` ยังไม่เห็น batch ของ item แรก จึงได้เลขเดียวกันเองถ้า YYMMDD เท่ากัน · ต้องทดสอบว่า standard ยอมให้ 2 item ใช้ batch ใหม่เลขเดียวกันใน save เดียวหรือไม่ | ผู้ใช้ทดสอบ | ⬜ |
-| Q-42 | **ขอบเขตของ "material เดียวกัน = batch เดียวกัน"** — เฉพาะใน delivery เดียวกันหรือไม่ · ถ้าคนละ PO item แล้ว delivery date ต่างกันล่ะ · (VL32 เพิ่ม item ไม่ต้องคิดแล้ว เพราะ VL32 ไม่เรียก BAdI) | ผู้ใช้ | ⬜ |
+| Q-39 | **CASE_C ไม่มี Delivery Date** | ✅ **ปิด 2026-10-08** — (ก) delivery date ของ PO schedule line จาก `I_PurOrdScheduleLineAPI01` (release C1) |
+| Q-40 | **PO type ไม่มีใน BAdI** | ✅ **ปิด 2026-10-08** — `I_PurchaseOrderAPI01-PurchaseOrderType` (release C1) |
+| Q-41 | **2 item ใช้ batch ใหม่เลขเดียวกันใน save เดียว** | ✅ **ปิด 2026-10-08** — ผู้ใช้ทดสอบแล้ว ระบบยอมให้ save |
+| Q-42 | **ขอบเขตของ "material เดียวกัน = batch เดียวกัน"** | ✅ **ปิด 2026-10-08** — เฉพาะใน delivery เดียวกัน · คนละ PO item วันที่ต่างกันก็ต้องได้เลขเดียวกัน ยึดเลขของ item แรก |
 | Q-43 | **log ของ VL32** | ✅ **ปิด 2026-10-08** — VL32 ไม่เรียก BAdI ตัวนี้ · CASE_C = VL31 เท่านั้น |
+| Q-44 | **field ของ `I_PurOrdScheduleLineAPI01`** — ชื่อ key และ field delivery date · PO item มีหลาย schedule line จะใช้บรรทัดไหน (เสนอบรรทัดแรก) | ผู้ใช้ส่ง source | ⬜ |
+| Q-45 | **กันเลขค้างจาก delivery ก่อนหน้า** — เก็บเลขของ item แรกไว้ใน static attribute ข้าม item ใน save เดียวกัน · เลข delivery ชั่วคราว `$       1` ซ้ำได้ทุก delivery ใน session เดียว · เสนอทิ้งเลขที่จำไว้เมื่อ batch นั้นอยู่ใน `I_Batch` แล้ว หรือเลข item ไม่เพิ่มขึ้น | ผู้ใช้ | ⬜ |
