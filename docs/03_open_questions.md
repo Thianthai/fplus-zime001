@@ -43,5 +43,5 @@
 | Q-39 | **CASE_C ไม่มี Delivery Date** — VL31 เลข delivery ชั่วคราว `$` อ่าน DB ไม่ได้ · ทางเลือก: (ก) delivery date ของ PO schedule line จาก PO + item (ข) วันที่ปัจจุบัน local · VL32 เลข delivery จริงอ่าน header ได้ (ต้องหา view ที่ release) | ผู้ใช้ | ⬜ |
 | Q-40 | **PO type ไม่มีใน BAdI** (`purchaseordertype` ว่าง) — อ่านจาก `I_PurchaseOrderAPI01-PurchaseOrderType` (ต้องเช็ค release C1) | ผู้ใช้เช็คใน ADT | ⬜ |
 | Q-41 | **material เดียวกันหลาย item ต้องได้ batch เดียวกัน** — ใน save เดียวกัน `I_Batch` ยังไม่เห็น batch ของ item แรก จึงได้เลขเดียวกันเองถ้า YYMMDD เท่ากัน · ต้องทดสอบว่า standard ยอมให้ 2 item ใช้ batch ใหม่เลขเดียวกันใน save เดียวหรือไม่ | ผู้ใช้ทดสอบ | ⬜ |
-| Q-42 | **ขอบเขตของ "material เดียวกัน = batch เดียวกัน"** — เฉพาะใน delivery เดียวกันหรือไม่ · ถ้าคนละ PO item แล้ว delivery date ต่างกันล่ะ · VL32 เพิ่ม item ทีหลังต้องได้ batch เดิมของ item ที่ save ไปแล้วหรือไม่ | ผู้ใช้ | ⬜ |
-| Q-43 | **ยังไม่มี log ของ VL32** — ต้องรู้ว่า VL32 เรียก BAdI ตอนไหน และเลข delivery เป็นเลขจริงหรือไม่ | ฟังก์ชันนอล | ⬜ |
+| Q-42 | **ขอบเขตของ "material เดียวกัน = batch เดียวกัน"** — เฉพาะใน delivery เดียวกันหรือไม่ · ถ้าคนละ PO item แล้ว delivery date ต่างกันล่ะ · (VL32 เพิ่ม item ไม่ต้องคิดแล้ว เพราะ VL32 ไม่เรียก BAdI) | ผู้ใช้ | ⬜ |
+| Q-43 | **log ของ VL32** | ✅ **ปิด 2026-10-08** — VL32 ไม่เรียก BAdI ตัวนี้ · CASE_C = VL31 เท่านั้น |

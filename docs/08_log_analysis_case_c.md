@@ -34,3 +34,8 @@
 | H7 | `manufacturingorderitem` มีค่า 0010 / 0020 ทั้งที่ไม่ใช่ production order | ไม่ใช้ field นี้ใน CASE_C |
 
 ## คำถาม (Q-39 ถึง Q-43 ใน `03_open_questions.md`)
+
+## อัปเดต 2026-10-08
+
+- ผู้ใช้ทดสอบแล้ว **VL32 ไม่เรียก BAdI ตัวนี้** -> CASE_C ครอบเฉพาะ VL31
+- VL32 จะมี BAdI อีกตัวไว้ validate วันที่กับ YYMMDD ของ batch (R-06 ทำท้ายสุด)
