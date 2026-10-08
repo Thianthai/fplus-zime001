@@ -62,6 +62,8 @@ CLASS zcl_zime001 DEFINITION
         a TYPE ty_case VALUE 'CASE_A',
         "! goods receipt อ้างอิง purchase order จาก MIGO
         b TYPE ty_case VALUE 'CASE_B',
+        "! inbound delivery อ้างอิง purchase order จาก Create Inbound Delivery
+        c TYPE ty_case VALUE 'CASE_C',
       END OF gc_case.
 
     "! ตรวจ format ของเลข batch YYMMDDNNNN เทียบกับวันที่ปัจจุบันตามเวลา local
@@ -106,7 +108,21 @@ CLASS zcl_zime001 DEFINITION
       "! movement type ของ goods movement
       ty_movement_type  TYPE c LENGTH 3,
       "! ประเภทเอกสารที่ goods movement อ้างอิง
-      ty_ref_doc_type   TYPE c LENGTH 1.
+      ty_ref_doc_type   TYPE c LENGTH 1,
+      "! document type ของ purchase order
+      ty_po_type        TYPE c LENGTH 4,
+
+      "! เลข batch ที่จำไว้ของ material ใน inbound delivery ที่กำลัง save
+      BEGIN OF ty_delivery_batch,
+        delivery_document TYPE c LENGTH 10,
+        material          TYPE c LENGTH 40,
+        delivery_item     TYPE n LENGTH 6,
+        batch             TYPE charg_d,
+      END OF ty_delivery_batch,
+
+      "! รายการเลข batch ที่จำไว้ 1 บรรทัดต่อ delivery และ material
+      tt_delivery_batch TYPE SORTED TABLE OF ty_delivery_batch
+                        WITH UNIQUE KEY delivery_document material.
 
     CONSTANTS:
       "! ความยาวของเลข batch ตาม format YYMMDDNNNN
@@ -133,11 +149,17 @@ CLASS zcl_zime001 DEFINITION
         movement_type         TYPE ztbc_param-param_name VALUE 'MOVEMENT_TYPE',
         "! ประเภทเอกสารอ้างอิงที่ต้องสร้างเลข batch
         ref_doc_type          TYPE ztbc_param-param_name VALUE 'REF_DOC_TYPE',
+        "! PO type ของ stock transport order ที่ไม่ต้องสร้างเลข batch
+        po_doctype_sto        TYPE ztbc_param-param_name VALUE 'PO_DOCTYPE_STO',
         "! additional parameter ของ goods receipt
         ext_goods_receipt     TYPE ztbc_param-param_ext  VALUE 'GOODS_RECEIPT',
         "! additional parameter ของ purchase order
         ext_purchase_order    TYPE ztbc_param-param_ext  VALUE 'PURCHASE_ORDER',
       END OF gc_param.
+
+    "! เลข batch ที่จำไว้ข้าม item ใน save เดียวกันของ inbound delivery
+    "! ให้ material เดียวกันใน delivery เดียวกันได้ batch เดียวกับ item แรก
+    CLASS-DATA gt_delivery_batch TYPE tt_delivery_batch.
 
     "! วันที่ปัจจุบันตามเวลา local
     "! แปลงไม่สำเร็จจะได้ค่าว่าง
@@ -182,6 +204,26 @@ CLASS zcl_zime001 DEFINITION
     "! @parameter is_batch_allocation | parameter BATCH_ALLOCATION ของ BAdI
     "! @parameter rv_batch            | เลข batch ใหม่ หรือค่าว่างเมื่อไม่เข้าเงื่อนไข
     CLASS-METHODS get_batch_case_b
+      IMPORTING is_batch_allocation TYPE ty_batch_allocation
+      RETURNING VALUE(rv_batch)     TYPE charg_d.
+
+    "! เลข batch ของ inbound delivery อ้างอิง purchase order
+    "! ประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter
+    "! PO type ที่ถูก exclude ใน constant parameter ไม่ต้องสร้างเลข batch
+    "! material ต้องเปิดใช้ batch management
+    "! material เดียวกันใน delivery เดียวกันได้ batch เดียวกับ item แรก
+    "! YYMMDD มาจาก delivery date ของ schedule line บรรทัดแรกของ PO item
+    "! @parameter is_batch_allocation | parameter BATCH_ALLOCATION ของ BAdI
+    "! @parameter rv_batch            | เลข batch ใหม่ หรือค่าว่างเมื่อไม่เข้าเงื่อนไข
+    CLASS-METHODS get_batch_case_c
+      IMPORTING is_batch_allocation TYPE ty_batch_allocation
+      RETURNING VALUE(rv_batch)     TYPE charg_d.
+
+    "! เลข batch ที่จำไว้ของ material เดียวกันใน delivery เดียวกัน
+    "! เลขที่จำไว้เป็นของ delivery อื่นจะถูกลบทิ้งแล้วคืนค่าว่าง
+    "! @parameter is_batch_allocation | parameter BATCH_ALLOCATION ของ BAdI
+    "! @parameter rv_batch            | เลข batch ที่จำไว้ หรือค่าว่างเมื่อไม่มีหรือใช้ไม่ได้
+    CLASS-METHODS get_remembered_batch
       IMPORTING is_batch_allocation TYPE ty_batch_allocation
       RETURNING VALUE(rv_batch)     TYPE charg_d.
 
@@ -234,6 +276,8 @@ CLASS zcl_zime001 IMPLEMENTATION.
         rv_batch = get_batch_case_a( is_batch_allocation ).
       WHEN gc_case-b.
         rv_batch = get_batch_case_b( is_batch_allocation ).
+      WHEN gc_case-c.
+        rv_batch = get_batch_case_c( is_batch_allocation ).
     ENDCASE.
 
   ENDMETHOD.
@@ -421,6 +465,137 @@ CLASS zcl_zime001 IMPLEMENTATION.
     " ใช้วันที่ปัจจุบันตามเวลา local แทน
     " ถ้า user แก้ posting date เป็นวันอื่น YYMMDD จะไม่ตรงกับ posting date
     rv_batch = generate_batch_number( is_batch_allocation-material ).
+
+  ENDMETHOD.
+
+
+  METHOD get_batch_case_c.
+
+    DATA lr_ref_doc_type  TYPE RANGE OF ty_ref_doc_type.
+    DATA lr_po_type       TYPE RANGE OF ty_po_type.
+    DATA lv_delivery_date TYPE d.
+
+    " ต้องเป็น inbound delivery ที่อ้างอิง purchase order
+    IF is_batch_allocation-deliverydocument IS INITIAL
+    OR is_batch_allocation-purchaseorder    IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    " ประเภทเอกสารอ้างอิงและ PO type ต้องผ่าน constant parameter
+    " ไม่เจอ parameter -> ไม่สร้างเลข batch
+    DATA(lo_param) = zcl_param=>create_instance( iv_company_code = ''
+                                                 iv_module_id    = gc_param-module_id ).
+
+    TRY.
+        lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
+                                       iv_param_name = gc_param-ref_doc_type
+                                       iv_param_ext  = gc_param-ext_purchase_order
+                             IMPORTING et_range      = lr_ref_doc_type ).
+
+        lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
+                                       iv_param_name = gc_param-po_doctype_sto
+                             IMPORTING et_range      = lr_po_type ).
+      CATCH zcx_param.
+        RETURN.
+    ENDTRY.
+
+    IF is_batch_allocation-goodsmovementrefdoctype NOT IN lr_ref_doc_type.
+      RETURN.
+    ENDIF.
+
+    " BAdI ไม่ส่ง PO type มา จึงอ่านจาก purchase order เอง
+    " range ของ PO type เป็นแบบ exclude
+    " PO type ที่ถูก exclude จะไม่อยู่ใน range -> ไม่สร้างเลข batch
+    SELECT SINGLE PurchaseOrderType
+      FROM I_PurchaseOrderAPI01 WITH PRIVILEGED ACCESS
+      WHERE PurchaseOrder = @is_batch_allocation-purchaseorder
+      INTO @DATA(lv_po_type).
+
+    IF sy-subrc <> 0 OR lv_po_type NOT IN lr_po_type.
+      RETURN.
+    ENDIF.
+
+    " material ต้องเปิดใช้ batch management
+    " อ่านไม่เจอ -> ไม่สร้างเลข batch
+    SELECT SINGLE IsBatchManagementRequired
+      FROM I_Product WITH PRIVILEGED ACCESS
+      WHERE Product = @is_batch_allocation-material
+      INTO @DATA(lv_batch_required).
+
+    IF lv_batch_required = abap_false.
+      RETURN.
+    ENDIF.
+
+    " material เดียวกันใน delivery เดียวกันใช้เลขของ item แรก
+    rv_batch = get_remembered_batch( is_batch_allocation ).
+    IF rv_batch IS NOT INITIAL.
+      RETURN.
+    ENDIF.
+
+    " BAdI ไม่ส่ง delivery date มา และ delivery ยังไม่ถูกบันทึก
+    " ใช้ delivery date ของ schedule line บรรทัดแรกของ PO item แทน
+    " ถ้า user แก้ delivery date ของ inbound delivery เป็นวันอื่น YYMMDD จะไม่ตรงกัน
+    SELECT ScheduleLineDeliveryDate
+      FROM I_PurOrdScheduleLineAPI01 WITH PRIVILEGED ACCESS
+      WHERE PurchaseOrder     = @is_batch_allocation-purchaseorder
+        AND PurchaseOrderItem = @is_batch_allocation-purchaseorderitem
+      ORDER BY PurchaseOrderScheduleLine
+      INTO TABLE @DATA(lt_schedule_line)
+      UP TO 1 ROWS.
+
+    lv_delivery_date = VALUE #( lt_schedule_line[ 1 ]-schedulelinedeliverydate OPTIONAL ).
+
+    IF lv_delivery_date IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    rv_batch = generate_batch_number( iv_material = is_batch_allocation-material
+                                      iv_date     = lv_delivery_date ).
+
+    " จำเลขไว้ให้ item ถัดไปของ material เดียวกันใน delivery เดียวกัน
+    IF rv_batch IS NOT INITIAL.
+      INSERT VALUE #( delivery_document = is_batch_allocation-deliverydocument
+                      material          = is_batch_allocation-material
+                      delivery_item     = is_batch_allocation-deliverydocumentitem
+                      batch             = rv_batch ) INTO TABLE gt_delivery_batch.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD get_remembered_batch.
+
+    READ TABLE gt_delivery_batch ASSIGNING FIELD-SYMBOL(<lfs_delivery_batch>)
+      WITH TABLE KEY delivery_document = is_batch_allocation-deliverydocument
+                     material          = is_batch_allocation-material.
+
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+
+    " เลข delivery ชั่วคราวซ้ำกันได้ทุก delivery ที่สร้างใน session เดียวกัน
+    " เลข item ไม่เพิ่มขึ้น -> เป็น delivery ใหม่ เลขที่จำไว้เป็นของ delivery ก่อนหน้า
+    IF is_batch_allocation-deliverydocumentitem <= <lfs_delivery_batch>-delivery_item.
+      DELETE TABLE gt_delivery_batch FROM <lfs_delivery_batch>.
+      RETURN.
+    ENDIF.
+
+    " batch ใน save เดียวกันยังไม่ถูกบันทึก จึงยังไม่อยู่ใน I_Batch
+    " เจอใน I_Batch แล้ว -> delivery ก่อนหน้า save ไปแล้ว เลขที่จำไว้ใช้ไม่ได้
+    SELECT SINGLE @abap_true
+      FROM I_Batch WITH PRIVILEGED ACCESS
+      WHERE Material = @is_batch_allocation-material
+        AND Batch    = @<lfs_delivery_batch>-batch
+      INTO @DATA(lv_batch_exists).
+
+    IF lv_batch_exists = abap_true.
+      DELETE TABLE gt_delivery_batch FROM <lfs_delivery_batch>.
+      RETURN.
+    ENDIF.
+
+    " ยังเป็น delivery เดียวกัน จำเลข item ล่าสุดไว้แล้วใช้เลขเดิม
+    <lfs_delivery_batch>-delivery_item = is_batch_allocation-deliverydocumentitem.
+    rv_batch = <lfs_delivery_batch>-batch.
 
   ENDMETHOD.
 

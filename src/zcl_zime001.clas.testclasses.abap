@@ -77,21 +77,23 @@ CLASS ltc_batch_number DEFINITION FINAL FOR TESTING
       RETURNING VALUE(rv_batch) TYPE charg_d.
 
     "! ยังไม่มี batch ของวันนี้ต้องได้ 0001
-    METHODS no_batch_gives_0001      FOR TESTING.
+    METHODS no_batch_gives_0001           FOR TESTING.
     "! มี batch แล้วต้องได้ค่าสูงสุดบวก 1 แม้รายการไม่เรียง
-    METHODS max_plus_one             FOR TESTING.
+    METHODS max_plus_one                  FOR TESTING.
     "! running number ถึง 9999 แล้วต้องได้ค่าว่าง
-    METHODS full_gives_blank         FOR TESTING.
+    METHODS full_gives_blank              FOR TESTING.
     "! batch ที่ไม่ตรง format ต้องถูกข้าม
-    METHODS invalid_format_skipped   FOR TESTING.
+    METHODS invalid_format_skipped        FOR TESTING.
     "! batch ของวันอื่นต้องถูกข้าม
-    METHODS other_day_skipped        FOR TESTING.
+    METHODS other_day_skipped             FOR TESTING.
     "! วันที่ในปีหน้าต้องได้ YYMMDD ของวันนั้นและนับต่อจาก batch ของวันนั้น
-    METHODS next_year_date           FOR TESTING.
+    METHODS next_year_date                FOR TESTING.
     "! case ที่ยังไม่รู้จักต้องได้ค่าว่าง
-    METHODS unknown_case_gives_blank FOR TESTING.
+    METHODS unknown_case_gives_blank      FOR TESTING.
     "! CASE_B ที่ไม่มี purchase order ต้องได้ค่าว่างโดยไม่อ่าน DB
-    METHODS case_b_without_po_blank  FOR TESTING.
+    METHODS case_b_without_po_blank       FOR TESTING.
+    "! CASE_C ที่ไม่มี inbound delivery ต้องได้ค่าว่างโดยไม่อ่าน DB
+    METHODS case_c_without_delivery_blank FOR TESTING.
 
 ENDCLASS.
 
@@ -253,6 +255,15 @@ CLASS ltc_batch_number IMPLEMENTATION.
                                                  is_batch_allocation = VALUE #( goodsmovementtype       = '101'
                                                                                 goodsmovementrefdoctype = 'B' ) )
                                          msg = 'CASE_B ไม่มี purchase order' ).
+  ENDMETHOD.
+
+
+  METHOD case_c_without_delivery_blank.
+    cl_abap_unit_assert=>assert_initial( act = zcl_zime001=>get_batch_number(
+                                                 iv_case             = zcl_zime001=>gc_case-c
+                                                 is_batch_allocation = VALUE #( purchaseorder           = '1'
+                                                                                goodsmovementrefdoctype = 'B' ) )
+                                         msg = 'CASE_C ไม่มี inbound delivery' ).
   ENDMETHOD.
 
 ENDCLASS.
