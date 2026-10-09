@@ -33,7 +33,7 @@ METHODS delivery_final_check
 
 - `message` เป็น **structure เดียว** ไม่ใช่ table -> ส่ง error ได้ทีละ 1 ข้อความ
 - ยังไม่รู้ว่า BAdI ถูกเรียกตอน Post GR ใน VL32 หรือไม่ และ `actualgoodsmovementdate` มีค่าตอนนั้นหรือยัง
-- ยังไม่รู้ค่าที่เป็นไปได้ของ `documentprocessingmode`
+- `documentprocessingmode` (domain `LEPROCESSINGMODE`) มี 3 ค่า: `CREATE` · `CHANGE` · `DISPLAY` (ผู้ใช้ส่งมา 2026-10-09) -> VL31 น่าจะเป็น CREATE · VL32 น่าจะเป็น CHANGE · ไม่มีค่าแยก Post GR ต้องดูจาก `actualgoodsmovementdate` / สถานะ GR
 - ยังไม่รู้ว่า `messagetype = 'E'` หยุด save ได้จริงหรือไม่ (มีรายงานว่า BAdI แบบ classic ไม่หยุด)
 - ต้องเก็บค่าจริงก่อน (Q-47)
 
