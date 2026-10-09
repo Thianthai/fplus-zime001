@@ -48,7 +48,8 @@
 | Q-44 | **field ของ `I_PurOrdScheduleLineAPI01`** | ✅ **ปิด 2026-10-08** — key `PurchaseOrder` + `PurchaseOrderItem` + `PurchaseOrderScheduleLine` · ใช้ `ScheduleLineDeliveryDate` ของ schedule line เลขน้อยสุด (`ORDER BY` + `UP TO 1 ROWS`) |
 | Q-45 | **กันเลขค้างจาก delivery ก่อนหน้า** | ✅ **ปิด 2026-10-08** — ทิ้งเลขที่จำไว้แล้วสร้างใหม่ เมื่อ batch นั้นอยู่ใน `I_Batch` แล้ว หรือเลข item ไม่เพิ่มขึ้น |
 | Q-46 | **ตัวแปรเปิดปิด logic** | ✅ **ปิด 2026-10-09** — ไม่ใช้ true/false · เช็คแค่ user: ทำงานเฉพาะ `CB9980000010` (ค่าเดียวกับ `created_by` ใน log) · ชั่วคราว ลบก่อน go-live |
-| Q-47 | **เก็บค่าจริงของ `LE_SHP_DELIVERY_FINAL_CHECK` ก่อนออกแบบ** — ใช้แอป Custom Logic Tracing กับ `YY1_SHP_DELIVERY_FINAL_CHECK` (ไม่ต้องสร้าง object) ตอน VL31 save · VL32 save เฉย ๆ · VL32 Post GR · ดู `documentprocessingmode` `actualgoodsmovementdate` และสถานะ GR | ผู้ใช้ทดสอบ | ⬜ |
-| Q-48 | **เช็คเมื่อไร** — เฉพาะตอน Post GR (มี GR Actual Date) หรือทุกครั้งที่ save · ถ้า save โดยยังไม่ Post GR ต้องเช็ค Delivery Date = YYMMDD หรือไม่ | ผู้ใช้ | ⬜ |
-| Q-49 | **เช็ค item ไหน** — เสนอ item ที่มี batch + material batch managed + อ้างอิง PO ที่ PO type ไม่ใช่ ZP25 | ผู้ใช้ | ⬜ |
-| Q-50 | **ข้อความ error** — ส่งได้ทีละ 1 ข้อความ · ภาษาไทยหรืออังกฤษ · ระบุ item / batch / วันที่ที่ไม่ตรงหรือไม่ · ใช้ user ทดสอบ `CB9980000010` จำกัดเหมือนเดิมหรือไม่ | ผู้ใช้ | ⬜ |
+| Q-47 | **เก็บค่าจริงของ `LE_SHP_DELIVERY_FINAL_CHECK` ก่อนออกแบบ** | ✅ **ปิด 2026-10-09** — ไม่ trace · เขียน logic draft แล้วทดสอบจริงเลย |
+| Q-48 | **เช็คเมื่อไร** | ✅ **ปิด 2026-10-09** — ทุกครั้งที่ save (CREATE · CHANGE) |
+| Q-49 | **เช็ค item ไหน** | ✅ **ปิด 2026-10-09** — item ที่มี batch + material batch managed + อ้างอิง PO ที่ PO type ไม่ใช่ ZP25 |
+| Q-50 | **ข้อความ error** | ✅ **ปิด 2026-10-09** — ภาษาอังกฤษ ข้อความกลาง ไม่ระบุ item / batch / วันที่ · (จำกัด user ทดสอบ: ยังไม่ได้ตอบ ถามซ้ำใน Q-51) |
+| Q-51 | **R-06 รายละเอียดก่อนเขียน code** — (1) ยังไม่ Post GR (`actualgoodsmovementdate` ว่าง) เช็คแค่ Delivery Date = YYMMDD (2) จำกัดเฉพาะ user ทดสอบ `CB9980000010` เหมือน `ZCL_ZIME001` (3) วาง logic ใน `ZCL_ZIME001` | ผู้ใช้ | ⬜ |
