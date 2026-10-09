@@ -438,8 +438,11 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
   METHOD get_batch_case_a.
 
-    DATA lr_order_type TYPE RANGE OF ty_order_type.
-    DATA lv_order_type TYPE ty_order_type.
+    " ปิดการเช็ค order type ชั่วคราว
+    " config ของ order type มีตัวอักษรที่มองไม่เห็นติดอยู่ ทำให้เทียบกับ constant parameter ไม่ตรง
+    " เปิดกลับหลังแก้ config ของ order type แล้ว
+*    DATA lr_order_type TYPE RANGE OF ty_order_type.
+*    DATA lv_order_type TYPE ty_order_type.
 
     " order ที่ยังไม่ save มีเลขชั่วคราว จึงอ่านวันเริ่มตามแผนจาก DB ไม่ได้
     " ข้ามไปใช้เลข batch ปกติ
@@ -450,24 +453,24 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
     " order type ต้องอยู่ใน constant parameter
     " ไม่เจอ parameter -> ไม่สร้างเลข batch
-    DATA(lo_param) = zcl_param=>create_instance( iv_company_code = ''
-                                                 iv_module_id    = gc_param-module_id ).
-
-    TRY.
-        lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
-                                       iv_param_name = gc_param-production_order_type
-                             IMPORTING et_range      = lr_order_type ).
-      CATCH zcx_param.
-        RETURN.
-    ENDTRY.
-
-    " order type ใน config มีตัวอักษรที่มองไม่เห็นติดมา
-    " ต้อง clear ออกก่อนเทียบกับ constant parameter
-    lv_order_type = zcl_utility=>remove_invisible_char( is_batch_allocation-ordertype ).
-
-    IF lv_order_type NOT IN lr_order_type.
-      RETURN.
-    ENDIF.
+*    DATA(lo_param) = zcl_param=>create_instance( iv_company_code = ''
+*                                                 iv_module_id    = gc_param-module_id ).
+*
+*    TRY.
+*        lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
+*                                       iv_param_name = gc_param-production_order_type
+*                             IMPORTING et_range      = lr_order_type ).
+*      CATCH zcx_param.
+*        RETURN.
+*    ENDTRY.
+*
+*    " order type ใน config มีตัวอักษรที่มองไม่เห็นติดมา
+*    " ต้อง clear ออกก่อนเทียบกับ constant parameter
+*    lv_order_type = zcl_utility=>remove_invisible_char( is_batch_allocation-ordertype ).
+*
+*    IF lv_order_type NOT IN lr_order_type.
+*      RETURN.
+*    ENDIF.
 
     " อ่านวันเริ่มตามแผนของ order
     " ไม่เช็ค status REL เพราะ BAdI ถูกเรียกตอน release ซึ่ง status ยังไม่ถูกบันทึก
