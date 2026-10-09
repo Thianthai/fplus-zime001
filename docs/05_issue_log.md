@@ -10,7 +10,7 @@
 
 | # | วันที่ | อาการ | สาเหตุ | แก้ที่ | สถานะ |
 |---|---|---|---|---|---|
-| I-01 | 2026-10-09 | CO02 release order ด้วย user `CB9980000010` แต่ไม่ได้เลข YYMMDDNNNN · log มี 1 row `batch_out_after` = `batch_in` | **ค่า Low ของ constant parameter `PRODUCTION_ORDER_TYPE` เป็น `ZFG` + U+200B** (ตรวจจาก export xlsx) · code ล้าง `ordertype` จาก BAdI เหลือ `ZFG` แล้วเทียบกับ range ที่มี U+200B -> ไม่ตรง · `ZCL_PARAM` ล้างแค่ key ไม่ล้าง Low / High · parameter อื่น (101 · B · ZP25) สะอาด | ฟังก์ชันนอลยืนยันว่า config order type ผิด (มี U+200B) · **ชั่วคราว**: constant parameter `PRODUCTION_ORDER_TYPE` เปลี่ยนเป็น Option `CP` Low `ZFG*` (พิมพ์มือ) ไม่แก้ code · หลังแก้ config ให้เปลี่ยนกลับเป็น `EQ` `ZFG` | 🟨 รอผู้ใช้แก้ parameter แล้วทดสอบซ้ำ |
+| I-01 | 2026-10-09 | CO02 release order ด้วย user `CB9980000010` แต่ไม่ได้เลข YYMMDDNNNN · log มี 1 row `batch_out_after` = `batch_in` | **ค่า Low ของ constant parameter `PRODUCTION_ORDER_TYPE` เป็น `ZFG` + U+200B** (ตรวจจาก export xlsx) · code ล้าง `ordertype` จาก BAdI เหลือ `ZFG` แล้วเทียบกับ range ที่มี U+200B -> ไม่ตรง · `ZCL_PARAM` ล้างแค่ key ไม่ล้าง Low / High · parameter อื่น (101 · B · ZP25) สะอาด | ฟังก์ชันนอลยืนยันว่า config order type ผิด (มี U+200B) · **ชั่วคราว**: constant parameter `PRODUCTION_ORDER_TYPE` เปลี่ยนเป็น Option `CP` Low `ZFG*` (พิมพ์มือ) ไม่แก้ code · หลังแก้ config ให้เปลี่ยนกลับเป็น `EQ` `ZFG` | 🟨 2026-10-09 รอบแรกที่แก้ได้ Low = `ZFG` + U+200B + `*` (ตัวอักษรเดิมยังอยู่ pattern จึงไม่ตรง) · รอพิมพ์ใหม่ทั้งช่อง |
 
 ## Requirement เพิ่มเติม
 
