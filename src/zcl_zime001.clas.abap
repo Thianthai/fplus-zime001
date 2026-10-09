@@ -72,21 +72,22 @@ CLASS zcl_zime001 DEFINITION
         "! order type ต้องอยู่ใน constant parameter PRODUCTION_ORDER_TYPE
         "! YYMMDD มาจากวันเริ่มตามแผนของ order ใน I_ManufacturingOrder
         a TYPE ty_case VALUE 'CASE_A',
-        "! CASE_B goods receipt อ้างอิง purchase order
+        "! CASE_B goods receipt อ้างอิง purchase order หรือ production order
         "! app: Goods Receipt (MIGO) action Goods Receipt คู่กับ reference document Purchase Order
-        "! ต้องมี purchase order และไม่มี inbound delivery
+        "! app: Goods Receipt (MIGO) action Goods Receipt คู่กับ reference document Order
+        "! ต้องมี movement type และไม่มี inbound delivery
         "! movement type ต้องอยู่ใน constant parameter MOVEMENT_TYPE ของ GOODS_RECEIPT
-        "! ประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter REF_DOC_TYPE ของ PURCHASE_ORDER
+        "! ประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter REF_DOC_TYPE
         "! material ต้องเปิดใช้ batch management ใน I_Product
         "! BAdI ถูกเรียกตอน Check และใช้เลขเดิมตอน Post
         "! YYMMDD ใช้วันที่ปัจจุบันตามเวลา local เพราะ BAdI ไม่ส่ง posting date มา
-        "! GR อ้างอิง purchase order จาก app อื่นที่ส่งค่าเหมือนกันจะเข้า case นี้ด้วย
+        "! GR จาก app อื่นที่ส่งค่าเหมือนกันจะเข้า case นี้ด้วย
         b TYPE ty_case VALUE 'CASE_B',
         "! CASE_C inbound delivery อ้างอิง purchase order
         "! app: Create Inbound Delivery (VL31)
         "! Change Inbound Delivery (VL32) ไม่เรียก BAdI ตัวนี้
         "! ต้องมี inbound delivery และ purchase order
-        "! ประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter REF_DOC_TYPE ของ PURCHASE_ORDER
+        "! ประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter REF_DOC_TYPE
         "! PO type ที่ถูก exclude ใน constant parameter PO_DOCTYPE_STO ไม่สร้างเลข batch
         "! material ต้องเปิดใช้ batch management ใน I_Product
         "! material เดียวกันใน delivery เดียวกันได้ batch เดียวกับ item แรก
@@ -195,8 +196,6 @@ CLASS zcl_zime001 DEFINITION
         po_doctype_sto        TYPE ztbc_param-param_name VALUE 'PO_DOCTYPE_STO',
         "! additional parameter ของ goods receipt
         ext_goods_receipt     TYPE ztbc_param-param_ext  VALUE 'GOODS_RECEIPT',
-        "! additional parameter ของ purchase order
-        ext_purchase_order    TYPE ztbc_param-param_ext  VALUE 'PURCHASE_ORDER',
       END OF gc_param.
 
     "! เลข batch ที่จำไว้ข้าม item ใน save เดียวกันของ inbound delivery
@@ -239,7 +238,7 @@ CLASS zcl_zime001 DEFINITION
       IMPORTING is_batch_allocation TYPE ty_batch_allocation
       RETURNING VALUE(rv_batch)     TYPE charg_d.
 
-    "! เลข batch ของ goods receipt อ้างอิง purchase order
+    "! เลข batch ของ goods receipt อ้างอิง purchase order หรือ production order
     "! movement type และประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter
     "! material ต้องเปิดใช้ batch management
     "! YYMMDD ใช้วันที่ปัจจุบันตามเวลา local เพราะ BAdI ไม่ส่ง posting date มา
@@ -340,9 +339,9 @@ CLASS zcl_zime001 IMPLEMENTATION.
     AND is_batch_allocation-goodsmovementtype IS INITIAL.
       rv_case = gc_case-a.
 
-    " goods receipt ส่ง movement type และ purchase order มา โดยไม่มีเลข delivery
+    " goods receipt ส่ง movement type มา โดยไม่มีเลข delivery
+    " เอกสารอ้างอิงที่รองรับไปเช็คจาก constant parameter ใน get_batch_case_b
     ELSEIF is_batch_allocation-goodsmovementtype IS NOT INITIAL
-    AND is_batch_allocation-purchaseorder IS NOT INITIAL
     AND is_batch_allocation-deliverydocument IS INITIAL.
       rv_case = gc_case-b.
 
@@ -495,10 +494,8 @@ CLASS zcl_zime001 IMPLEMENTATION.
     DATA lr_movement_type TYPE RANGE OF ty_movement_type.
     DATA lr_ref_doc_type  TYPE RANGE OF ty_ref_doc_type.
 
-    " ต้องรับของอ้างอิง purchase order
     " รับของผ่าน inbound delivery ไม่ใช่ case นี้
-    IF is_batch_allocation-purchaseorder IS INITIAL
-    OR is_batch_allocation-deliverydocument IS NOT INITIAL.
+    IF is_batch_allocation-deliverydocument IS NOT INITIAL.
       RETURN.
     ENDIF.
 
@@ -515,7 +512,6 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
         lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
                                        iv_param_name = gc_param-ref_doc_type
-                                       iv_param_ext  = gc_param-ext_purchase_order
                              IMPORTING et_range      = lr_ref_doc_type ).
       CATCH zcx_param.
         RETURN.
@@ -565,7 +561,6 @@ CLASS zcl_zime001 IMPLEMENTATION.
     TRY.
         lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
                                        iv_param_name = gc_param-ref_doc_type
-                                       iv_param_ext  = gc_param-ext_purchase_order
                              IMPORTING et_range      = lr_ref_doc_type ).
 
         lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id

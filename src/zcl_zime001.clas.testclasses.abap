@@ -90,8 +90,10 @@ CLASS ltc_batch_number DEFINITION FINAL FOR TESTING
     METHODS next_year_date                FOR TESTING.
     "! case ที่ยังไม่รู้จักต้องได้ค่าว่าง
     METHODS unknown_case_gives_blank      FOR TESTING.
-    "! CASE_B ที่ไม่มี purchase order ต้องได้ค่าว่างโดยไม่อ่าน DB
-    METHODS case_b_without_po_blank       FOR TESTING.
+    "! CASE_B ที่มี inbound delivery ต้องได้ค่าว่างโดยไม่อ่าน DB
+    METHODS case_b_with_delivery_blank    FOR TESTING.
+    "! goods receipt อ้างอิง production order ต้องเป็น CASE_B ไม่ใช่ CASE_A
+    METHODS determine_case_b_prod_order   FOR TESTING.
     "! CASE_C ที่ไม่มี inbound delivery ต้องได้ค่าว่างโดยไม่อ่าน DB
     METHODS case_c_without_delivery_blank FOR TESTING.
     "! production order ต้องเป็น CASE_A
@@ -257,12 +259,24 @@ CLASS ltc_batch_number IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD case_b_without_po_blank.
+  METHOD case_b_with_delivery_blank.
     cl_abap_unit_assert=>assert_initial( act = zcl_zime001=>get_batch_number(
                                                  iv_case             = zcl_zime001=>gc_case-b
                                                  is_batch_allocation = VALUE #( goodsmovementtype       = '101'
-                                                                                goodsmovementrefdoctype = 'B' ) )
-                                         msg = 'CASE_B ไม่มี purchase order' ).
+                                                                                goodsmovementrefdoctype = 'B'
+                                                                                deliverydocument        = '$       1' ) )
+                                         msg = 'CASE_B มี inbound delivery' ).
+  ENDMETHOD.
+
+
+  METHOD determine_case_b_prod_order.
+    cl_abap_unit_assert=>assert_equals( act = zcl_zime001=>determine_case(
+                                                VALUE #( ordercategory           = '10'
+                                                         manufacturingorder      = '000000000001'
+                                                         goodsmovementtype       = '101'
+                                                         goodsmovementrefdoctype = 'F' ) )
+                                        exp = zcl_zime001=>gc_case-b
+                                        msg = 'goods receipt อ้างอิง production order' ).
   ENDMETHOD.
 
 
