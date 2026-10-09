@@ -94,6 +94,14 @@ CLASS ltc_batch_number DEFINITION FINAL FOR TESTING
     METHODS case_b_without_po_blank       FOR TESTING.
     "! CASE_C ที่ไม่มี inbound delivery ต้องได้ค่าว่างโดยไม่อ่าน DB
     METHODS case_c_without_delivery_blank FOR TESTING.
+    "! production order ต้องเป็น CASE_A
+    METHODS determine_case_a              FOR TESTING.
+    "! goods receipt อ้างอิง purchase order ต้องเป็น CASE_B
+    METHODS determine_case_b              FOR TESTING.
+    "! inbound delivery อ้างอิง purchase order ต้องเป็น CASE_C
+    METHODS determine_case_c              FOR TESTING.
+    "! ค่าที่ไม่เข้า case ไหนต้องได้ค่าว่าง
+    METHODS determine_case_none           FOR TESTING.
 
 ENDCLASS.
 
@@ -264,6 +272,46 @@ CLASS ltc_batch_number IMPLEMENTATION.
                                                  is_batch_allocation = VALUE #( purchaseorder           = '1'
                                                                                 goodsmovementrefdoctype = 'B' ) )
                                          msg = 'CASE_C ไม่มี inbound delivery' ).
+  ENDMETHOD.
+
+
+  METHOD determine_case_a.
+    cl_abap_unit_assert=>assert_equals( act = zcl_zime001=>determine_case(
+                                                VALUE #( ordercategory      = '10'
+                                                         manufacturingorder = '000000000001'
+                                                         ordertype          = 'ZFG' ) )
+                                        exp = zcl_zime001=>gc_case-a
+                                        msg = 'production order' ).
+  ENDMETHOD.
+
+
+  METHOD determine_case_b.
+    cl_abap_unit_assert=>assert_equals( act = zcl_zime001=>determine_case(
+                                                VALUE #( ordercategory           = '00'
+                                                         goodsmovementtype       = '101'
+                                                         goodsmovementrefdoctype = 'B'
+                                                         purchaseorder           = '0000000001' ) )
+                                        exp = zcl_zime001=>gc_case-b
+                                        msg = 'goods receipt อ้างอิง purchase order' ).
+  ENDMETHOD.
+
+
+  METHOD determine_case_c.
+    cl_abap_unit_assert=>assert_equals( act = zcl_zime001=>determine_case(
+                                                VALUE #( ordercategory           = '00'
+                                                         goodsmovementtype       = '101'
+                                                         goodsmovementrefdoctype = 'B'
+                                                         purchaseorder           = '0000000001'
+                                                         deliverydocument        = '$       1' ) )
+                                        exp = zcl_zime001=>gc_case-c
+                                        msg = 'inbound delivery อ้างอิง purchase order' ).
+  ENDMETHOD.
+
+
+  METHOD determine_case_none.
+    cl_abap_unit_assert=>assert_initial( act = zcl_zime001=>determine_case(
+                                                 VALUE #( ordercategory = '00' ) )
+                                         msg = 'ไม่เข้า case ไหน' ).
   ENDMETHOD.
 
 ENDCLASS.

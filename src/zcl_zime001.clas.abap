@@ -126,6 +126,15 @@ CLASS zcl_zime001 DEFINITION
                 iv_batch_in           TYPE charg_d OPTIONAL
       RETURNING VALUE(rv_batch)       TYPE charg_d.
 
+    "! แยก case ของธุรกรรมจากค่าใน BATCH_ALLOCATION
+    "! กฎของแต่ละ case ได้จาก log ของ BAdI ที่ทดสอบจริง
+    "! ไม่เข้า case ไหนจะคืนค่าว่าง
+    "! @parameter is_batch_allocation | parameter BATCH_ALLOCATION ของ BAdI
+    "! @parameter rv_case             | case จาก gc_case หรือค่าว่าง
+    CLASS-METHODS determine_case
+      IMPORTING is_batch_allocation TYPE ty_batch_allocation
+      RETURNING VALUE(rv_case)      TYPE ty_case.
+
   PRIVATE SECTION.
 
     TYPES:
@@ -162,7 +171,12 @@ CLASS zcl_zime001 DEFINITION
       "! running number สูงสุดที่ยอมให้ใช้
       gc_running_max      TYPE i VALUE 9999,
       "! ตัวแรกของเลข order ชั่วคราวที่ระบบให้ระหว่างสร้าง order ที่ยังไม่ save
-      gc_temporary_order  TYPE c LENGTH 1 VALUE '%'.
+      gc_temporary_order  TYPE c LENGTH 1 VALUE '%',
+      "! order category ของ production order
+      gc_order_category_production TYPE n LENGTH 2 VALUE '10',
+      "! user เดียวที่ logic ทำงานให้ระหว่างทดสอบ
+      "! ชั่วคราว ลบก่อน transport
+      gc_test_user        TYPE c LENGTH 12 VALUE 'CB9980000010'.
 
     CONSTANTS:
       "! key ของ constant parameter ใน ZTBC_PARAM
@@ -298,6 +312,13 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
   METHOD get_batch_number.
 
+    " ชั่วคราวระหว่างทดสอบ ทำงานเฉพาะ user ทดสอบ
+    " user อื่นได้เลข batch ปกติจาก number range
+    " ลบเงื่อนไขนี้ก่อน transport
+    IF cl_abap_context_info=>get_user_technical_name( ) <> gc_test_user.
+      RETURN.
+    ENDIF.
+
     " case ที่ยังไม่รู้จัก -> คืนค่าว่าง ไม่แตะ BATCH_OUT
     CASE iv_case.
       WHEN gc_case-a.
@@ -307,6 +328,30 @@ CLASS zcl_zime001 IMPLEMENTATION.
       WHEN gc_case-c.
         rv_batch = get_batch_case_c( is_batch_allocation ).
     ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD determine_case.
+
+    " production order ส่ง order category และเลข order มา โดยไม่มี movement type
+    IF is_batch_allocation-ordercategory = gc_order_category_production
+    AND is_batch_allocation-manufacturingorder IS NOT INITIAL
+    AND is_batch_allocation-goodsmovementtype IS INITIAL.
+      rv_case = gc_case-a.
+
+    " goods receipt ส่ง movement type และ purchase order มา โดยไม่มีเลข delivery
+    ELSEIF is_batch_allocation-goodsmovementtype IS NOT INITIAL
+    AND is_batch_allocation-purchaseorder IS NOT INITIAL
+    AND is_batch_allocation-deliverydocument IS INITIAL.
+      rv_case = gc_case-b.
+
+    " inbound delivery ส่งเลข delivery และ purchase order มา
+    ELSEIF is_batch_allocation-deliverydocument IS NOT INITIAL
+    AND is_batch_allocation-purchaseorder IS NOT INITIAL.
+      rv_case = gc_case-c.
+
+    ENDIF.
 
   ENDMETHOD.
 
