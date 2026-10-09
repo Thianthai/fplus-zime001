@@ -12,6 +12,7 @@
 |---|---|---|---|---|---|
 | I-01 | 2026-10-09 | CO02 release order ด้วย user `CB9980000010` แต่ไม่ได้เลข YYMMDDNNNN · log มี 1 row `batch_out_after` = `batch_in` | **ค่า Low ของ constant parameter `PRODUCTION_ORDER_TYPE` เป็น `ZFG` + U+200B** (ตรวจจาก export xlsx) · code ล้าง `ordertype` จาก BAdI เหลือ `ZFG` แล้วเทียบกับ range ที่มี U+200B -> ไม่ตรง · `ZCL_PARAM` ล้างแค่ key ไม่ล้าง Low / High · parameter อื่น (101 · B · ZP25) สะอาด | ฟังก์ชันนอลยืนยันว่า config order type ผิด (มี U+200B) · **ชั่วคราว**: constant parameter `PRODUCTION_ORDER_TYPE` เปลี่ยนเป็น Option `CP` Low `ZFG*` (พิมพ์มือ) ไม่แก้ code · หลังแก้ config ให้เปลี่ยนกลับเป็น `EQ` `ZFG` | 🟨 2026-10-09 แก้ parameter รอบแรกได้ `ZFG` + U+200B + `*` · ~~`remove_invisible_char_in_range( )`~~ ยกเลิก · ผู้ใช้เลือก **comment การเช็ค order type ใน CASE_A ชั่วคราว** ทุก order type ผ่าน · อยู่ใน repo `f32839d` · ✅ ทดสอบซ้ำ 2026-10-09: order 000014000118 ได้ `2610090003` · เหลือเปิดการเช็คกลับหลังแก้ config |
 | I-02 | 2026-10-09 | MIGO 2 รอบได้ `2610090001` ซ้ำกัน (PO 2110000127 item 00010) | ไม่ใช่ปัญหา · ผู้ใช้ยืนยันรอบ 1 ไม่ได้ Post batch จึงไม่ถูกบันทึก · รอบ 2 Post สำเร็จด้วย `2610090001` | — | ✅ ปิด 2026-10-09 · รอทดสอบใบถัดไปต้องได้ `2610090002` |
+| I-03 | 2026-10-09 | MIGO A01 + R08 (`goodsmovementrefdoctype = F` · material 320000000 ZSFG) ไม่ได้เลข YYMMDDNNNN | ยังไม่รู้ · สงสัย (1) แถว `REF_DOC_TYPE` F ยังไม่ได้ maintain ตอนทดสอบหรือมีตัวอักษรซ่อน (2) `I_Product-IsBatchManagementRequired` ของ 320000000 ว่าง (flag อยู่ระดับ plant) | ยังไม่รู้ | 🔍 รอผู้ใช้เช็ค |
 
 ## Requirement เพิ่มเติม
 

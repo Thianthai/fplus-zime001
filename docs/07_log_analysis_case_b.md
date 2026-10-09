@@ -64,3 +64,12 @@ code ส่ง `iv_param_ext` ทุกครั้งที่ parameter มี
 | `REF_DOC_TYPE` | (ว่าง) | B | CASE_B · CASE_C |
 | `REF_DOC_TYPE` | (ว่าง) | F | CASE_B (MIGO R08 production order) |
 
+## ผลทดสอบ MIGO A01 + R08 (2026-10-09)
+
+| เวลา (UTC) | material | `goodsmovementtype` | `goodsmovementrefdoctype` | `manufacturingorder` | `ordercategory` | `batch_out_after` |
+|---|---|---|---|---|---|---|
+| 11:23:54 | 320000000 (ZSFG) | 101 | **F** | 000013000027 | **00** | 0000000161 ❌ ไม่ได้เลขใหม่ |
+
+- ยืนยันว่า MIGO R08 ส่ง `goodsmovementrefdoctype = F` และเลข production order มา โดย `ordercategory = 00` (ไม่ใช่ 10) -> `determine_case` ได้ CASE_B ถูกต้อง
+- ไม่ได้เลข -> `get_batch_case_b` ข้ามที่ขั้นใดขั้นหนึ่ง (I-03)
+
