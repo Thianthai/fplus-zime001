@@ -10,7 +10,7 @@
 
 | # | วันที่ | อาการ | สาเหตุ | แก้ที่ | สถานะ |
 |---|---|---|---|---|---|
-| I-01 | 2026-10-09 | CO02 release order ด้วย user `CB9980000010` แต่ไม่ได้เลข YYMMDDNNNN · log มี 1 row `batch_out_after` = `batch_in` | **ค่า Low ของ constant parameter `PRODUCTION_ORDER_TYPE` เป็น `ZFG` + U+200B** (ตรวจจาก export xlsx) · code ล้าง `ordertype` จาก BAdI เหลือ `ZFG` แล้วเทียบกับ range ที่มี U+200B -> ไม่ตรง · `ZCL_PARAM` ล้างแค่ key ไม่ล้าง Low / High · parameter อื่น (101 · B · ZP25) สะอาด | พิมพ์ค่า Low `ZFG` ใหม่ในแอป Constant Parameter | 🟨 รอผู้ใช้แก้ค่าแล้วทดสอบซ้ำ |
+| I-01 | 2026-10-09 | CO02 release order ด้วย user `CB9980000010` แต่ไม่ได้เลข YYMMDDNNNN · log มี 1 row `batch_out_after` = `batch_in` | **ค่า Low ของ constant parameter `PRODUCTION_ORDER_TYPE` เป็น `ZFG` + U+200B** (ตรวจจาก export xlsx) · code ล้าง `ordertype` จาก BAdI เหลือ `ZFG` แล้วเทียบกับ range ที่มี U+200B -> ไม่ตรง · `ZCL_PARAM` ล้างแค่ key ไม่ล้าง Low / High · parameter อื่น (101 · B · ZP25) สะอาด | ฟังก์ชันนอลยืนยันว่า config order type ผิด (มี U+200B) · **ชั่วคราว**: constant parameter `PRODUCTION_ORDER_TYPE` เปลี่ยนเป็น Option `CP` Low `ZFG*` (พิมพ์มือ) ไม่แก้ code · หลังแก้ config ให้เปลี่ยนกลับเป็น `EQ` `ZFG` | 🟨 รอผู้ใช้แก้ parameter แล้วทดสอบซ้ำ |
 
 ## Requirement เพิ่มเติม
 
@@ -33,4 +33,5 @@
   - user อื่นต้องได้เลขปกติ
 - OQ ค้าง: Q-34 (Posting Date MIGO) · Q-36 (แยก app ไม่ได้) · Q-39 (Delivery Date VL31)
 - R-06 (VL32 validate) ทำท้ายสุด
+- หลังฟังก์ชันนอลแก้ config order type `ZFG`: เปลี่ยน `PRODUCTION_ORDER_TYPE` กลับเป็น `EQ` `ZFG` (I-01)
 - ก่อน transport: ลบ `gc_test_user` และเงื่อนไขใน `get_batch_number` · ลบส่วน log ใน Custom Logic · `ZCL_ZIME001_LOG` เปลี่ยนเป็น Not Released แล้วลบ · ลบ `ZIME001_LOG`
