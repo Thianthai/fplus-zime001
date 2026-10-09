@@ -59,3 +59,10 @@
    - เลข order จริง (CO02 · Mass Processing) -> `MfgOrderScheduledStartDate` จาก `I_ManufacturingOrder` · อ่านไม่เจอ -> ข้าม
 4. NNNN ตาม logic เดิมจาก `I_Batch`
 
+## ผลทดสอบหลังเรียก `ZCL_ZIME001` จริง
+
+| วันที่ | App | Order | `batch_in` | `batch_out_after` | ผล |
+|---|---|---|---|---|---|
+| 2026-10-09 | CO02 | 000014000112 | 0000000152 | 0000000152 | ❌ I-01 constant parameter มี U+200B |
+| 2026-10-09 | CO02 | 000014000118 | 0000000154 | **2610090003** | ✅ หลังปิดการเช็ค order type ชั่วคราว |
+
