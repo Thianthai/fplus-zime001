@@ -56,3 +56,11 @@ code ส่ง `iv_param_ext` ทุกครั้งที่ parameter มี
 - ทั้งสองรอบได้เลขเดียวกันถูกต้อง เพราะรอบแรกไม่ได้ Post (I-02 ปิดแล้ว)
 - รอทดสอบ GR ใบถัดไปของ material เดียวกัน ต้องได้ `2610090002`
 
+## Constant parameter หลัง R-08 (2026-10-09)
+
+| Parameter | Additional Parameter | Low | ใช้ที่ |
+|---|---|---|---|
+| `MOVEMENT_TYPE` | `GOODS_RECEIPT` | 101 | CASE_B |
+| `REF_DOC_TYPE` | (ว่าง) | B | CASE_B · CASE_C |
+| `REF_DOC_TYPE` | (ว่าง) | F | CASE_B (MIGO R08 production order) |
+
