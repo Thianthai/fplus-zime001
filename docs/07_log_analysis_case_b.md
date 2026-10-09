@@ -72,4 +72,4 @@ code ส่ง `iv_param_ext` ทุกครั้งที่ parameter มี
 
 - ยืนยันว่า MIGO R08 ส่ง `goodsmovementrefdoctype = F` และเลข production order มา โดย `ordercategory = 00` (ไม่ใช่ 10) -> `determine_case` ได้ CASE_B ถูกต้อง
 - ไม่ได้เลข -> `get_batch_case_b` ข้ามที่ขั้นใดขั้นหนึ่ง (I-03)
-
+| 11:44:17 | 320000000 (ZSFG) | 101 | F | 000013000028 | 00 | **2610090001** ✅ ทดสอบซ้ำหลัง maintain F |
