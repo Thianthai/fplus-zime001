@@ -10,7 +10,7 @@
 
 | # | วันที่ | อาการ | สาเหตุ | แก้ที่ | สถานะ |
 |---|---|---|---|---|---|
-| I-01 | 2026-10-09 | CO02 release order ด้วย user `CB9980000010` แต่ไม่ได้เลข YYMMDDNNNN · log มี 1 row `batch_out_after` = `batch_in` (0000000152) · ค่าใน log เข้ากฎ CASE_A ครบ | ยังไม่รู้ · `determine_case` ควรได้ CASE_A · ไม่มี exception (log ท้าย Custom Logic ยังทำงาน) -> `get_batch_case_a` คืนค่าว่างที่ขั้นใดขั้นหนึ่ง | ยังไม่รู้ | 🔍 ไล่หาสาเหตุ · R-06 hold |
+| I-01 | 2026-10-09 | CO02 release order ด้วย user `CB9980000010` แต่ไม่ได้เลข YYMMDDNNNN · log มี 1 row `batch_out_after` = `batch_in` | **ค่า Low ของ constant parameter `PRODUCTION_ORDER_TYPE` เป็น `ZFG` + U+200B** (ตรวจจาก export xlsx) · code ล้าง `ordertype` จาก BAdI เหลือ `ZFG` แล้วเทียบกับ range ที่มี U+200B -> ไม่ตรง · `ZCL_PARAM` ล้างแค่ key ไม่ล้าง Low / High · parameter อื่น (101 · B · ZP25) สะอาด | พิมพ์ค่า Low `ZFG` ใหม่ในแอป Constant Parameter | 🟨 รอผู้ใช้แก้ค่าแล้วทดสอบซ้ำ |
 
 ## Requirement เพิ่มเติม
 
