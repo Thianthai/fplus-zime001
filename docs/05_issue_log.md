@@ -26,6 +26,7 @@
 | R-07 | 2026-10-08 | กฎแยก case จาก `BATCH_ALLOCATION` + แก้ Custom Logic ให้เรียก `ZCL_ZIME001` จริง + ตัวแปรชั่วคราวเปิดปิด logic เพื่อไม่ให้กระทบ user อื่น | `ZCL_ZIME001` · Custom Logic | 🧪 2026-10-09 class release แล้ว (`a0148d9`) · Custom Logic publish แล้ว · เปิดเฉพาะ user `CB9980000010` (ชั่วคราว) · รอผลทดสอบจากฟังก์ชันนอล |
 | R-06 | 2026-10-08 | **ทำท้ายสุด** · BAdI อีกตัวตอน VL32: validate ว่า Delivery Date = GR Actual Date และตรงกับ YYMMDD ของ batch ที่ gen ไว้ · ไม่ตรง -> error ห้าม Post · ยกเว้น PO type ZP25 (PO Intercom) ไม่เช็ค | ยังไม่ระบุ | ⏸️ รอทำหลัง CASE ทั้งหมด · 2026-10-09 ใช้ `LE_SHP_DELIVERY_FINAL_CHECK` · Custom Logic `YY1_SHP_DELIVERY_FINAL_CHECK` สร้างแล้ว · วิเคราะห์ signature ใน `09_vl32_final_check.md` · รอ Q-47 ถึง Q-50 |
 | R-08 | 2026-10-09 | CASE_B รับ MIGO A01 + R08 (production order · `goodsmovementrefdoctype = F`) เพิ่มจาก R01 · `REF_DOC_TYPE` ไม่ใช้ Additional Parameter แล้ว (B และ F) ใช้ร่วมกับ CASE_C | `ZCL_ZIME001` | ✅ **draft** อยู่ใน repo `e463163` 2026-10-09 · รอ maintain `REF_DOC_TYPE` B และ F แบบ ext ว่าง แล้วทดสอบ MIGO R08 |
+| R-09 | 2026-10-09 | CASE_C ใช้วันที่ปัจจุบัน local เป็น YYMMDD แทน delivery date ของ PO schedule line | `ZCL_ZIME001` | 🟨 ส่ง code 2026-10-09 |
 
 ## จุดที่ค้าง (อัปเดต 2026-10-09)
 

@@ -40,7 +40,7 @@
 | Q-36 | **แยก app ไม่ได้** — ต้อง support เฉพาะ MIGO แต่ BAdI ไม่บอก app · GR อ้างอิง PO จาก app อื่นจะเข้า CASE_B ด้วย | ผู้ใช้ | ⬜ OQ ค้าง (2026-10-06) หาทางออกหลังทำครบทุก case |
 | Q-37 | **BAdI ถูกเรียกตอน Check ไม่ใช่ Post** | ✅ **ปิด 2026-10-06** — ยอมรับ |
 | Q-38 | **constant parameter `PO_DOCTYPE_STO` ใช้กับ case ไหน** | ✅ **ปิด 2026-10-08** — ใช้กับ CASE_C (Inbound Delivery) ไม่ใช้กับ CASE_B |
-| Q-39 | **CASE_C ไม่มี Delivery Date** — **ชั่วคราว: ใช้ delivery date ของ PO schedule line บรรทัดแรก** จาก `I_PurOrdScheduleLineAPI01` · ไม่ตรงกับ requirement ที่ต้องการ Delivery Date ของ inbound delivery | ผู้ใช้ | ⬜ OQ ค้าง (2026-10-08) |
+| Q-39 | **CASE_C ไม่มี Delivery Date** — **ชั่วคราว: 2026-10-09 เปลี่ยนจาก PO schedule line เป็นวันที่ปัจจุบัน local** (ผู้ใช้สั่ง) · ไม่ตรงกับ requirement ที่ต้องการ Delivery Date ของ inbound delivery | ผู้ใช้ | ⬜ OQ ค้าง |
 | Q-40 | **PO type ไม่มีใน BAdI** | ✅ **ปิด 2026-10-08** — `I_PurchaseOrderAPI01-PurchaseOrderType` (release C1) |
 | Q-41 | **2 item ใช้ batch ใหม่เลขเดียวกันใน save เดียว** | ✅ **ปิด 2026-10-08** — ผู้ใช้ทดสอบแล้ว ระบบยอมให้ save |
 | Q-42 | **ขอบเขตของ "material เดียวกัน = batch เดียวกัน"** | ✅ **ปิด 2026-10-08** — เฉพาะใน delivery เดียวกัน · คนละ PO item วันที่ต่างกันก็ต้องได้เลขเดียวกัน ยึดเลขของ item แรก |
