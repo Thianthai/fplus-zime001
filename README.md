@@ -44,3 +44,4 @@ batch_out
 | [docs/06_log_analysis_case_a.md](docs/06_log_analysis_case_a.md) | วิเคราะห์ log ของ CASE_A |
 | [docs/07_log_analysis_case_b.md](docs/07_log_analysis_case_b.md) | วิเคราะห์ log ของ CASE_B |
 | [docs/08_log_analysis_case_c.md](docs/08_log_analysis_case_c.md) | วิเคราะห์ log ของ CASE_C |
+| [docs/09_vl32_final_check.md](docs/09_vl32_final_check.md) | R-06 validate VL32 ด้วย `LE_SHP_DELIVERY_FINAL_CHECK` |
