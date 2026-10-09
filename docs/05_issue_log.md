@@ -37,7 +37,7 @@
   - CASE_C: VL31 หลาย item material เดียวกัน ต้องได้เลขเดียวกัน
   - user อื่นต้องได้เลขปกติ
 - OQ ค้าง: Q-34 (Posting Date MIGO) · Q-36 (แยก app ไม่ได้) · Q-39 (Delivery Date VL31)
-- R-06 (VL32 validate) ทำท้ายสุด
+- **2026-10-09 ผู้ใช้แจ้งว่า process ของ VL31 / VL32 จะปรับ** รอรายละเอียด -> CASE_C (VL31) และ R-06 (VL32 validate) พักไว้ก่อน
 - หลังฟังก์ชันนอลแก้ config order type `ZFG`: เปิดการเช็ค order type ใน `get_batch_case_a` กลับ และเปลี่ยน `PRODUCTION_ORDER_TYPE` กลับเป็น `EQ` `ZFG` (I-01)
 - **ตั้งแต่ 2026-10-09 (`87c29f2`) เช็ค user ทดสอบถูกปิด logic ทำงานกับทุก user บน DEV** (ผู้ใช้ตั้งใจ)
 - แก้ ABAP Doc ของ method `get_batch_case_c` ที่ยังพูดถึง schedule line (ไม่กระทบการทำงาน)
