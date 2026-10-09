@@ -91,7 +91,7 @@ CLASS zcl_zime001 DEFINITION
         "! PO type ที่ถูก exclude ใน constant parameter PO_DOCTYPE_STO ไม่สร้างเลข batch
         "! material ต้องเปิดใช้ batch management ใน I_Product
         "! material เดียวกันใน delivery เดียวกันได้ batch เดียวกับ item แรก
-        "! YYMMDD มาจาก delivery date ของ schedule line บรรทัดแรกของ PO item
+        "! YYMMDD ใช้วันที่ปัจจุบันตามเวลา local เพราะ BAdI ไม่ส่ง delivery date มา
         c TYPE ty_case VALUE 'CASE_C',
       END OF gc_case.
 
@@ -315,7 +315,7 @@ CLASS zcl_zime001 IMPLEMENTATION.
     " user อื่นได้เลข batch ปกติจาก number range
     " ลบเงื่อนไขนี้ก่อน transport
     IF cl_abap_context_info=>get_user_technical_name( ) <> gc_test_user.
-      RETURN.
+*      RETURN.
     ENDIF.
 
     " case ที่ยังไม่รู้จัก -> คืนค่าว่าง ไม่แตะ BATCH_OUT
@@ -545,7 +545,6 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
     DATA lr_ref_doc_type  TYPE RANGE OF ty_ref_doc_type.
     DATA lr_po_type       TYPE RANGE OF ty_po_type.
-    DATA lv_delivery_date TYPE d.
 
     " ต้องเป็น inbound delivery ที่อ้างอิง purchase order
     IF is_batch_allocation-deliverydocument IS INITIAL
@@ -604,24 +603,9 @@ CLASS zcl_zime001 IMPLEMENTATION.
     ENDIF.
 
     " BAdI ไม่ส่ง delivery date มา และ delivery ยังไม่ถูกบันทึก
-    " ใช้ delivery date ของ schedule line บรรทัดแรกของ PO item แทน
-    " ถ้า user แก้ delivery date ของ inbound delivery เป็นวันอื่น YYMMDD จะไม่ตรงกัน
-    SELECT ScheduleLineDeliveryDate
-      FROM I_PurOrdScheduleLineAPI01 WITH PRIVILEGED ACCESS
-      WHERE PurchaseOrder     = @is_batch_allocation-purchaseorder
-        AND PurchaseOrderItem = @is_batch_allocation-purchaseorderitem
-      ORDER BY PurchaseOrderScheduleLine
-      INTO TABLE @DATA(lt_schedule_line)
-      UP TO 1 ROWS.
-
-    lv_delivery_date = VALUE #( lt_schedule_line[ 1 ]-schedulelinedeliverydate OPTIONAL ).
-
-    IF lv_delivery_date IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    rv_batch = generate_batch_number( iv_material = is_batch_allocation-material
-                                      iv_date     = lv_delivery_date ).
+    " ใช้วันที่ปัจจุบันตามเวลา local แทน
+    " ถ้า delivery date ของ inbound delivery เป็นวันอื่น YYMMDD จะไม่ตรงกัน
+    rv_batch = generate_batch_number( is_batch_allocation-material ).
 
     " จำเลขไว้ให้ item ถัดไปของ material เดียวกันใน delivery เดียวกัน
     IF rv_batch IS NOT INITIAL.
