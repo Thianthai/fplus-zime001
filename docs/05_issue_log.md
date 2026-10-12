@@ -28,18 +28,18 @@
 | R-08 | 2026-10-09 | CASE_B รับ MIGO A01 + R08 (production order · `goodsmovementrefdoctype = F`) เพิ่มจาก R01 · `REF_DOC_TYPE` ไม่ใช้ Additional Parameter แล้ว (B และ F) ใช้ร่วมกับ CASE_C | `ZCL_ZIME001` | ✅ **draft** อยู่ใน repo `e463163` 2026-10-09 · รอ maintain `REF_DOC_TYPE` B และ F แบบ ext ว่าง แล้วทดสอบ MIGO R08 |
 | R-09 | 2026-10-09 | CASE_C ใช้วันที่ปัจจุบัน local เป็น YYMMDD แทน delivery date ของ PO schedule line | `ZCL_ZIME001` | ✅ อยู่ใน repo `87c29f2` · ABAP Doc ของ method `get_batch_case_c` ยังเป็นข้อความเดิม (schedule line) · commit เดียวกัน comment `RETURN` ของเช็ค user ทดสอบใน `get_batch_number` -> **ผู้ใช้ยืนยันว่าตั้งใจ 2026-10-09** ให้ฟังก์ชันนอลทดสอบหลาย user · logic ทำงานกับทุก user บน DEV |
 | R-10 | 2026-10-12 | process ใหม่: VL31 ไม่ replace batch แต่บังคับ actual GM date = delivery date · VL32 replace batch และ validate format + YYMMDD = actual GM date + delivery date = actual GM date ผ่าน `YY1_SHP_DELIVERY_FINAL_CHECK` · แทน R-06 และเปลี่ยน CASE_C | `ZCL_ZIME001` · Custom Logic 2 ตัว | ✅ อยู่ใน repo `2b976b1` 2026-10-12 · รอ publish Custom Logic และทดสอบ VL31 / VL32 · `check_inbound_delivery` + `get_relevant_items` + `validate_delivery` + `is_batch_format_valid` · CASE_C ข้ามเลข `$` และใช้ actual GM date จาก `I_DeliveryDocument` |
-| R-11 | 2026-10-12 | CASE_B ใช้ posting date จริงของ MIGO: เก็บจาก `MMIM_CREATE_GM_POSTING_DATE` ใน static attribute · validate batch ด้วย `BADI_MMIM_CHECK_MATDOC_ITEM` (format + YYMMDD = posting date) | `ZCL_ZIME001` · Custom Logic `YY1_CREATE_GM_POSTING_DATE` · `YY1_CHECK_MATDOC_ITEM` | ✅ อยู่ใน repo `ca45433` 2026-10-12 · รอ publish Custom Logic 2 ตัวและทดสอบ MIGO 5 ข้อ |
+| R-11 | 2026-10-12 | CASE_B ใช้ posting date จริงของ MIGO: เก็บจาก `MMIM_CREATE_GM_POSTING_DATE` ใน static attribute · validate batch ด้วย `BADI_MMIM_CHECK_MATDOC_ITEM` (format + YYMMDD = posting date) | `ZCL_ZIME001` · Custom Logic `YY1_CREATE_GM_POSTING_DATE` · `YY1_CHECK_MATDOC_ITEM` | ✅ เสร็จ 2026-10-12 · repo `ca45433` · ทดสอบ 4 ข้อผ่าน · GI / transfer posting ให้ฟังก์ชันนอลทดสอบ |
 
 ## จุดที่ค้าง (อัปเดต 2026-10-09)
 
 - **รอฟังก์ชันนอลทดสอบ** ด้วย user `CB9980000010` แล้ว export `ZIME001_LOG` มาเทียบ
   - ✅ CASE_A: CO02 (`2610090003`) และ Mass Processing (`2610090004` `2610090005`) ผ่าน 2026-10-09
   - 🟨 CASE_B: MIGO A01 + R01 ได้ `2610090001` · รอ GR ใบถัดไปต้องได้ `0002`
-  - ✅ R-11: posting date 11.10 ได้ `2610110001` และ post ได้ · แก้ posting date หลังได้เลขแล้วติด error และ post ไม่ได้ · เหลือทดสอบ GI / transfer posting
+  - ✅ R-11: posting date 11.10 ได้ `2610110001` และ post ได้ · แก้ posting date หลังได้เลขแล้วติด error และ post ไม่ได้ · GI / transfer posting ให้ฟังก์ชันนอลทดสอบ
   - ✅ CASE_B: MIGO A01 + R08 (F) ได้ `2610090001` (material 320000000)
   - CASE_C: VL31 หลาย item material เดียวกัน ต้องได้เลขเดียวกัน
   - user อื่นต้องได้เลขปกติ
-- OQ ค้าง: Q-36 (แยก app ไม่ได้) · Q-39 (Delivery Date VL31) · Q-58 (delivery type ที่ต้องตรวจ)
+- OQ ค้าง: Q-36 (แยก app ไม่ได้) · Q-58 (delivery type ที่ต้องตรวจ)
 - **2026-10-12 process ใหม่ VL31 / VL32 (R-10)** ดู `09_vl32_final_check.md` · รอตอบ Q-53 ถึง Q-56
 - หลังฟังก์ชันนอลแก้ config order type `ZFG`: เปิดการเช็ค order type ใน `get_batch_case_a` กลับ และเปลี่ยน `PRODUCTION_ORDER_TYPE` กลับเป็น `EQ` `ZFG` (I-01)
 - **ตั้งแต่ 2026-10-09 (`87c29f2`) เช็ค user ทดสอบถูกปิด logic ทำงานกับทุก user บน DEV** (ผู้ใช้ตั้งใจ)
