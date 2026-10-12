@@ -55,3 +55,21 @@ METHODS delivery_final_check
 - เดิมทดสอบพบว่า VL32 ไม่เรียก `LOBM_AFTER_BATCH_NUMBER_INT` (เพราะ batch ถูกสร้างตั้งแต่ VL31) -> ต้องรู้ว่าใน process ใหม่ VL32 เรียก BAdI นี้หรือไม่ และตอนไหน (Q-53)
 - YYMMDD ของ VL32 น่าจะมาจาก `actualgoodsmovementdate` ที่ถูกบันทึกไว้ตั้งแต่ VL31 (อ่านจาก DB ได้เพราะ delivery มีเลขจริงแล้ว)
 
+## Custom Logic `YY1_SHP_DELIVERY_FINAL_CHECK` (ส่ง 2026-10-12 · R-10)
+
+```abap
+" ZIME001 Automatic Batch Creation
+" ตรวจ inbound delivery ก่อน save
+" logic ทั้งหมดอยู่ใน class ZCL_ZIME001
+" ไม่ผ่าน -> แสดง error และไม่ให้ save
+DATA(lv_message) = zcl_zime001=>check_inbound_delivery(
+                     iv_processing_mode = documentprocessingmode
+                     is_delivery_head   = CORRESPONDING #( delivery_document_in )
+                     it_delivery_items  = CORRESPONDING #( delivery_document_items_in ) ).
+
+IF lv_message IS NOT INITIAL.
+  message-messagetype = 'E'.
+  message-messagetext = lv_message.
+ENDIF.
+```
+
