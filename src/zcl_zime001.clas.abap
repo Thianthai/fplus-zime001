@@ -265,10 +265,7 @@ CLASS zcl_zime001 DEFINITION
       "! ตัวแรกของเลข delivery ชั่วคราวที่ระบบให้ระหว่างสร้าง delivery ที่ยังไม่ save
       gc_temporary_delivery TYPE c LENGTH 1 VALUE '$',
       "! order category ของ production order
-      gc_order_category_production TYPE n LENGTH 2 VALUE '10',
-      "! user เดียวที่ logic ทำงานให้ระหว่างทดสอบ
-      "! ชั่วคราว ลบก่อน transport
-      gc_test_user        TYPE c LENGTH 12 VALUE 'CB9980000010'.
+      gc_order_category_production TYPE n LENGTH 2 VALUE '10'.
 
     CONSTANTS:
       "! key ของ constant parameter ใน ZTBC_PARAM
@@ -488,13 +485,6 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
 
   METHOD get_batch_number.
-
-    " ชั่วคราวระหว่างทดสอบ ทำงานเฉพาะ user ทดสอบ
-    " user อื่นได้เลข batch ปกติจาก number range
-    " ลบเงื่อนไขนี้ก่อน transport
-    IF cl_abap_context_info=>get_user_technical_name( ) <> gc_test_user.
-*      RETURN.
-    ENDIF.
 
     " case ที่ยังไม่รู้จัก -> คืนค่าว่าง ไม่แตะ BATCH_OUT
     CASE iv_case.
