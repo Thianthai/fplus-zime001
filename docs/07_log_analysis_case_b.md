@@ -123,3 +123,12 @@ code ส่ง `iv_param_ext` ทุกครั้งที่ parameter มี
 - **ไม่มีเลขเอกสาร / item / material** -> ผูกกับการเรียก `LOBM_AFTER_BATCH_NUMBER_INT` ได้ทาง session เท่านั้น (ค่าล่าสุดที่เก็บไว้)
 - ชื่อ enhancement spot และ field value chain บอกว่าเป็นของ framework สร้าง goods movement ใหม่ (Fiori / API) -> **ยังไม่รู้ว่า MIGO เรียกหรือไม่** และเรียกก่อนจองเลข batch หรือไม่ -> ต้องทดสอบ
 
+### ผลทดสอบจังหวะด้วย Custom Logic Tracing (2026-10-12)
+
+MIGO A01 + R08 · order 13000028 · กด Check · trace 13:36:27
+1. `YY1_CREATE_GM_POSTING_DATE` ถูกเรียก **ก่อน** (43 ms) · `POSTINGDATE` = 20261012 · `MINIMALOPENPOSTINGDATE` 20260901 · `MAXIMALOPENPOSTINGDATE` 20261031
+2. `YY1_AFTER_BATCH_NUMBER_INT` ถูกเรียก **หลัง** (225 ms) ใน trace เดียวกัน -> batch `2610120001`
+
+สรุป: ✅ MIGO เรียก `MMIM_CREATE_GM_POSTING_DATE` และเรียกก่อนจองเลข batch -> แนวคิดเก็บ posting date ใน static attribute ทำได้
+ยังต้องทดสอบ: posting date ที่ไม่ใช่วันนี้ · หลาย item · แก้ posting date หลัง Check แล้ว
+
