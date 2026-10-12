@@ -150,3 +150,12 @@ MIGO A01 + R08 · order 13000028 · กด Check · trace 13:36:27
 สรุป: ✅ มี posting date + batch + เงื่อนไขของ CASE_B ครบใน BAdI เดียว · validate ได้โดยไม่ต้องพึ่ง static attribute · ส่ง error ได้หลายข้อความ
 ยังต้องยืนยันด้วย trace: ถูกเรียกตอน Check · field `POSTINGDATE` และ `BATCH` มีค่าจริงใน MIGO
 
+### เอกสารที่ post ระหว่างทดสอบโดยไม่ตั้งใจ (2026-10-12)
+
+| Material document | ปี | หมายเหตุ |
+|---|---|---|
+| 5000000260 | 2026 | GR order 13000028 · batch `2610120001` · post โดยไม่ตั้งใจ |
+| 5000000261 | 2026 | cancel ของ 5000000260 (movement 102) |
+
+batch master `2610120001` ของ material 320000000 ยังอยู่ -> GR ถัดไปวันเดียวกันได้ `2610120002`
+
