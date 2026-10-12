@@ -156,6 +156,7 @@ MIGO A01 + R08 · order 13000028 · กด Check · trace 13:36:27
 |---|---|---|
 | 5000000260 | 2026 | GR order 13000028 · batch `2610120001` · post โดยไม่ตั้งใจ |
 | 5000000261 | 2026 | cancel ของ 5000000260 (movement 102) |
+| 5000000262 | 2026 | ทดสอบ R-11 ข้อ 2 · GR order 13000028 · batch `2610110001` · posting date 11.10.2026 |
 
 batch master `2610120001` ของ material 320000000 ยังอยู่ -> GR ถัดไปวันเดียวกันได้ `2610120002`
 
@@ -205,7 +206,7 @@ ENDIF.
 |---|---|---|
 | 3 | posting date 12.10.2026 -> Check ได้ batch `2610120002` -> แก้ posting date เป็น 11.10.2026 -> Check | ✅ error `Batch date must be the same as the posting date.` · item ไฟแดง |
 | 1 | posting date 11.10.2026 ก่อน Check ครั้งแรก | ✅ batch `2610110001` ไม่มี error |
-| 2 | ข้อ 1 แล้ว Post | ⬜ |
+| 2 | ข้อ 1 แล้ว Post | ✅ post ได้ material document 5000000262 (batch `2610110001` · posting date 11.10.2026) |
 | 4 | ข้อ 3 แล้วกด Post ต้อง post ไม่ได้ | ⬜ |
 | 5 | GI / transfer posting ผ่านตามปกติ | ⬜ |
 
