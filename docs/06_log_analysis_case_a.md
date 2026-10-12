@@ -77,3 +77,13 @@ Business context ที่ค้นด้วยคำว่า Manufacturing / P
 - ที่ใกล้ที่สุด: **Manufacturing: Order Operation** · Manufacturing: Manage Process Order Operation (Fiori process order) · Manufacturing: Order Confirmation (ช้าเกินไป) · Manufacturing: Production Version (master data)
 - ยังไม่ได้ค้นด้วยคำว่า Order · Logistics · Batch
 
+### BAdI ใต้ Manufacturing: Order Operation
+
+| BAdI | คำอธิบาย | ความน่าสนใจ |
+|---|---|---|
+| **`BD_COBADICFL_MFGORDER_OPR_INIT`** | Manufacturing Order Operation - Initialization on Creation/Change | ⭐ ถูกเรียกตอนสร้าง operation (ก่อน release) · ต้องดูว่ามีเลข order และวันที่หรือไม่ · วันที่อาจยังไม่ถูก schedule |
+| **`BD_COBADICFL_MFGORDER_OPR`** | Manufacturing Order Operation - Update on Processing/Save | ⭐ ถูกเรียกระหว่างทำรายการ / save · อาจได้วันที่หลัง schedule แล้ว · ต้องดูจังหวะเทียบกับ release |
+| `BADI_PPINT_SOA_LONGTEXT` | Conversion of Long Texts in SOAP Messages | ไม่เกี่ยว |
+| `BD_COBADICFL_ORDER_FLT_OP_INIT` | Excluding Operations from Distribution | ไม่เกี่ยว |
+| `BD_MIDNIGHT_CONVERSION` | Adjusting the Time 24:00 | ไม่เกี่ยว |
+
