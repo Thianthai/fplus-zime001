@@ -199,3 +199,13 @@ IF lv_message IS NOT INITIAL.
 ENDIF.
 ```
 
+## ผลทดสอบ R-11 (2026-10-12)
+
+| # | ทดสอบ | ผล |
+|---|---|---|
+| 3 | posting date 12.10.2026 -> Check ได้ batch `2610120002` -> แก้ posting date เป็น 11.10.2026 -> Check | ✅ error `Batch date must be the same as the posting date.` · item ไฟแดง |
+| 1 | posting date วันอื่นก่อน Check ครั้งแรก -> ได้ `YYMMDD` ตาม posting date | ⬜ |
+| 2 | ข้อ 1 แล้ว Post | ⬜ |
+| 4 | ข้อ 3 แล้วกด Post ต้อง post ไม่ได้ | ⬜ |
+| 5 | GI / transfer posting ผ่านตามปกติ | ⬜ |
+
