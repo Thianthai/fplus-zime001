@@ -1,6 +1,7 @@
 CLASS ltc_batch_format DEFINITION DEFERRED.
 CLASS ltc_batch_number DEFINITION DEFERRED.
-CLASS zcl_zime001 DEFINITION LOCAL FRIENDS ltc_batch_format ltc_batch_number.
+CLASS ltc_inbound_delivery DEFINITION DEFERRED.
+CLASS zcl_zime001 DEFINITION LOCAL FRIENDS ltc_batch_format ltc_batch_number ltc_inbound_delivery.
 
 "! ทดสอบการตรวจ format ของเลข batch YYMMDDNNNN
 "! กำหนดวันที่ปัจจุบันเองผ่าน check_batch_format จึงไม่ขึ้นกับวันที่รัน test
@@ -329,3 +330,139 @@ CLASS ltc_batch_number IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
+
+"! ทดสอบการตรวจ inbound delivery ก่อน save
+"! ส่ง header และ item ที่ต้อง replace เลข batch เองผ่าน validate_delivery จึงไม่อ่าน DB
+CLASS ltc_inbound_delivery DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PRIVATE SECTION.
+
+    CONSTANTS:
+      "! actual goods movement date สมมติ
+      gc_date       TYPE d VALUE '20261009',
+      "! วันอื่นที่ไม่เท่ากับ actual goods movement date
+      gc_other_date TYPE d VALUE '20261008'.
+
+    "! เรียก validate_delivery ด้วยโหมดแก้ delivery และ item ที่มี batch ตามที่ส่งมา
+    "! @parameter iv_mode     | โหมดการทำรายการ
+    "! @parameter iv_delivery | delivery date
+    "! @parameter iv_actual   | actual goods movement date
+    "! @parameter iv_batch    | batch ของ item
+    "! @parameter rv_message  | ข้อความ error หรือค่าว่าง
+    METHODS validate
+      IMPORTING iv_mode           TYPE zcl_zime001=>ty_processing_mode DEFAULT zcl_zime001=>gc_processing_mode-change
+                iv_delivery       TYPE d DEFAULT gc_date
+                iv_actual         TYPE d DEFAULT gc_date
+                iv_batch          TYPE charg_d DEFAULT '2610090001'
+      RETURNING VALUE(rv_message) TYPE string.
+
+    "! batch ที่เป็น format YYMMDDNNNN ต้องผ่าน และที่ผิด format ต้องไม่ผ่าน
+    METHODS batch_format                  FOR TESTING.
+    "! ไม่มี item ที่ต้อง replace เลข batch ต้องผ่านโดยไม่ตรวจ
+    METHODS no_relevant_item_passes       FOR TESTING.
+    "! ไม่ได้กรอก actual goods movement date ต้องไม่ผ่าน
+    METHODS actual_date_required          FOR TESTING.
+    "! delivery date ไม่เท่ากับ actual goods movement date ต้องไม่ผ่าน
+    METHODS delivery_date_differs         FOR TESTING.
+    "! ตอนสร้าง delivery ไม่ตรวจ batch
+    METHODS create_skips_batch            FOR TESTING.
+    "! ตอนแก้ delivery item ที่ยังไม่มี batch ต้องไม่ผ่าน
+    METHODS batch_missing                 FOR TESTING.
+    "! ตอนแก้ delivery batch ผิด format ต้องไม่ผ่าน
+    METHODS batch_format_invalid          FOR TESTING.
+    "! ตอนแก้ delivery YYMMDD ไม่เท่ากับ actual goods movement date ต้องไม่ผ่าน
+    METHODS batch_date_differs            FOR TESTING.
+    "! ตอนแก้ delivery ข้อมูลถูกทุกข้อต้องผ่าน
+    METHODS change_passes                 FOR TESTING.
+
+ENDCLASS.
+
+
+CLASS ltc_inbound_delivery IMPLEMENTATION.
+
+  METHOD validate.
+    rv_message = zcl_zime001=>validate_delivery(
+                   iv_processing_mode = iv_mode
+                   is_delivery_head   = VALUE #( sddocumentcategory      = '7'
+                                                 deliverydate            = iv_delivery
+                                                 actualgoodsmovementdate = iv_actual )
+                   it_relevant_items  = VALUE #( ( deliverydocumentitem        = '000010'
+                                                   batch                       = iv_batch
+                                                   materialisbatchmanaged      = abap_true
+                                                   referencesddocumentcategory = 'V' ) ) ).
+  ENDMETHOD.
+
+
+  METHOD batch_format.
+    cl_abap_unit_assert=>assert_true( act = zcl_zime001=>is_batch_format_valid( '2610090001' ) msg = 'format ถูก' ).
+    cl_abap_unit_assert=>assert_true( act = zcl_zime001=>is_batch_format_valid( '2501010001' ) msg = 'ปีอื่นก็ format ถูก' ).
+    cl_abap_unit_assert=>assert_false( act = zcl_zime001=>is_batch_format_valid( '261009001' )  msg = 'ยาว 9 ตัว' ).
+    cl_abap_unit_assert=>assert_false( act = zcl_zime001=>is_batch_format_valid( '26100900A1' ) msg = 'มีตัวอักษร' ).
+    cl_abap_unit_assert=>assert_false( act = zcl_zime001=>is_batch_format_valid( '2613010001' ) msg = 'เดือน 13' ).
+    cl_abap_unit_assert=>assert_false( act = zcl_zime001=>is_batch_format_valid( '2610090000' ) msg = 'running 0000' ).
+  ENDMETHOD.
+
+
+  METHOD no_relevant_item_passes.
+    cl_abap_unit_assert=>assert_initial( act = zcl_zime001=>validate_delivery(
+                                                 iv_processing_mode = zcl_zime001=>gc_processing_mode-change
+                                                 is_delivery_head   = VALUE #( sddocumentcategory = '7' )
+                                                 it_relevant_items  = VALUE #( ) )
+                                         msg = 'ไม่มี item ที่ต้อง replace' ).
+  ENDMETHOD.
+
+
+  METHOD actual_date_required.
+    cl_abap_unit_assert=>assert_equals( act = validate( iv_mode   = zcl_zime001=>gc_processing_mode-create
+                                                        iv_actual = '00000000' )
+                                        exp = zcl_zime001=>gc_message-actual_date_required
+                                        msg = 'ไม่ได้กรอก actual goods movement date' ).
+  ENDMETHOD.
+
+
+  METHOD delivery_date_differs.
+    cl_abap_unit_assert=>assert_equals( act = validate( iv_mode     = zcl_zime001=>gc_processing_mode-create
+                                                        iv_delivery = gc_other_date )
+                                        exp = zcl_zime001=>gc_message-delivery_date_differs
+                                        msg = 'delivery date ไม่เท่ากับ actual goods movement date' ).
+  ENDMETHOD.
+
+
+  METHOD create_skips_batch.
+    cl_abap_unit_assert=>assert_initial( act = validate( iv_mode  = zcl_zime001=>gc_processing_mode-create
+                                                         iv_batch = '' )
+                                         msg = 'ตอนสร้าง delivery ไม่ตรวจ batch' ).
+  ENDMETHOD.
+
+
+  METHOD batch_missing.
+    cl_abap_unit_assert=>assert_equals( act = validate( iv_batch = '' )
+                                        exp = zcl_zime001=>gc_message-batch_missing
+                                        msg = 'ยังไม่มี batch' ).
+  ENDMETHOD.
+
+
+  METHOD batch_format_invalid.
+    cl_abap_unit_assert=>assert_equals( act = validate( iv_batch = '0000000125' )
+                                        exp = zcl_zime001=>gc_message-batch_format_invalid
+                                        msg = 'batch เลขปกติจาก number range' ).
+  ENDMETHOD.
+
+
+  METHOD batch_date_differs.
+    cl_abap_unit_assert=>assert_equals( act = validate( iv_batch = '2610080001' )
+                                        exp = zcl_zime001=>gc_message-batch_date_differs
+                                        msg = 'YYMMDD ไม่เท่ากับ actual goods movement date' ).
+  ENDMETHOD.
+
+
+  METHOD change_passes.
+    cl_abap_unit_assert=>assert_initial( act = validate( )
+                                         msg = 'ข้อมูลถูกทุกข้อ' ).
+  ENDMETHOD.
+
+ENDCLASS.
+

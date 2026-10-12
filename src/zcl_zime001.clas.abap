@@ -53,7 +53,34 @@ CLASS zcl_zime001 DEFINITION
         deliverydocument             TYPE c LENGTH 10,
         deliverydocumentitem         TYPE n LENGTH 6,
         wbselementinternalid         TYPE n LENGTH 24,
-      END OF ty_batch_allocation.
+      END OF ty_batch_allocation,
+
+      "! โหมดการทำรายการของ delivery จาก BAdI LE_SHP_DELIVERY_FINAL_CHECK
+      ty_processing_mode TYPE c LENGTH 7,
+
+      "! header ของ delivery เฉพาะ field ที่ใช้ตรวจ
+      "! ชื่อ component ตรงกับ BAdI LE_SHP_DELIVERY_FINAL_CHECK ให้ Custom Logic ส่งด้วย CORRESPONDING ได้
+      BEGIN OF ty_delivery_head,
+        deliverydocument        TYPE c LENGTH 10,
+        sddocumentcategory      TYPE c LENGTH 4,
+        deliverydate            TYPE d,
+        actualgoodsmovementdate TYPE d,
+      END OF ty_delivery_head,
+
+      "! item ของ delivery เฉพาะ field ที่ใช้ตรวจ
+      "! ชื่อ component ตรงกับ BAdI LE_SHP_DELIVERY_FINAL_CHECK ให้ Custom Logic ส่งด้วย CORRESPONDING ได้
+      BEGIN OF ty_delivery_item,
+        deliverydocumentitem        TYPE n LENGTH 6,
+        material                    TYPE c LENGTH 40,
+        batch                       TYPE charg_d,
+        materialisbatchmanaged      TYPE c LENGTH 1,
+        referencesddocument         TYPE c LENGTH 10,
+        referencesddocumentitem     TYPE n LENGTH 6,
+        referencesddocumentcategory TYPE c LENGTH 4,
+      END OF ty_delivery_item,
+
+      "! รายการ item ของ delivery
+      tt_delivery_item TYPE STANDARD TABLE OF ty_delivery_item WITH EMPTY KEY.
 
     CONSTANTS:
       "! case ของธุรกรรมที่เรียก BAdI ตัวนี้
@@ -84,16 +111,28 @@ CLASS zcl_zime001 DEFINITION
         "! GR จาก app อื่นที่ส่งค่าเหมือนกันจะเข้า case นี้ด้วย
         b TYPE ty_case VALUE 'CASE_B',
         "! CASE_C inbound delivery อ้างอิง purchase order
-        "! app: Create Inbound Delivery (VL31)
-        "! Change Inbound Delivery (VL32) ไม่เรียก BAdI ตัวนี้
+        "! app: Change Inbound Delivery (VL32) ตอนกดปุ่ม Batch Creation
+        "! Create Inbound Delivery (VL31) ไม่ replace เลข batch เพราะ delivery ยังเป็นเลขชั่วคราว
         "! ต้องมี inbound delivery และ purchase order
         "! ประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter REF_DOC_TYPE
         "! PO type ที่ถูก exclude ใน constant parameter PO_DOCTYPE_STO ไม่สร้างเลข batch
         "! material ต้องเปิดใช้ batch management ใน I_Product
         "! material เดียวกันใน delivery เดียวกันได้ batch เดียวกับ item แรก
-        "! YYMMDD ใช้วันที่ปัจจุบันตามเวลา local เพราะ BAdI ไม่ส่ง delivery date มา
+        "! YYMMDD มาจาก actual goods movement date ของ delivery ใน I_DeliveryDocument
+        "! ตรวจ delivery ก่อน save ด้วย check_inbound_delivery
         c TYPE ty_case VALUE 'CASE_C',
       END OF gc_case.
+
+    CONSTANTS:
+      "! โหมดการทำรายการของ delivery จาก BAdI LE_SHP_DELIVERY_FINAL_CHECK
+      BEGIN OF gc_processing_mode,
+        "! สร้าง delivery
+        create  TYPE ty_processing_mode VALUE 'CREATE',
+        "! แก้ delivery
+        change  TYPE ty_processing_mode VALUE 'CHANGE',
+        "! แสดง delivery
+        display TYPE ty_processing_mode VALUE 'DISPLAY',
+      END OF gc_processing_mode.
 
     "! ตรวจ format ของเลข batch YYMMDDNNNN เทียบกับวันที่ปัจจุบันตามเวลา local
     "! @parameter iv_batch | เลข batch ที่ต้องการตรวจ
@@ -136,6 +175,20 @@ CLASS zcl_zime001 DEFINITION
       IMPORTING is_batch_allocation TYPE ty_batch_allocation
       RETURNING VALUE(rv_case)      TYPE ty_case.
 
+    "! ตรวจ inbound delivery ก่อน save
+    "! ใช้กับ Custom Logic YY1_SHP_DELIVERY_FINAL_CHECK ของ BAdI LE_SHP_DELIVERY_FINAL_CHECK
+    "! ตรวจเฉพาะเมื่อมี item ที่ต้อง replace เลข batch
+    "! คืนข้อความ error ข้อแรกที่เจอ หรือค่าว่างเมื่อผ่าน
+    "! @parameter iv_processing_mode | โหมดการทำรายการ ค่าจาก gc_processing_mode
+    "! @parameter is_delivery_head   | header ของ delivery
+    "! @parameter it_delivery_items  | item ของ delivery
+    "! @parameter rv_message         | ข้อความ error หรือค่าว่าง
+    CLASS-METHODS check_inbound_delivery
+      IMPORTING iv_processing_mode TYPE ty_processing_mode
+                is_delivery_head   TYPE ty_delivery_head
+                it_delivery_items  TYPE tt_delivery_item
+      RETURNING VALUE(rv_message)  TYPE string.
+
   PRIVATE SECTION.
 
     TYPES:
@@ -173,6 +226,8 @@ CLASS zcl_zime001 DEFINITION
       gc_running_max      TYPE i VALUE 9999,
       "! ตัวแรกของเลข order ชั่วคราวที่ระบบให้ระหว่างสร้าง order ที่ยังไม่ save
       gc_temporary_order  TYPE c LENGTH 1 VALUE '%',
+      "! ตัวแรกของเลข delivery ชั่วคราวที่ระบบให้ระหว่างสร้าง delivery ที่ยังไม่ save
+      gc_temporary_delivery TYPE c LENGTH 1 VALUE '$',
       "! order category ของ production order
       gc_order_category_production TYPE n LENGTH 2 VALUE '10',
       "! user เดียวที่ logic ทำงานให้ระหว่างทดสอบ
@@ -197,6 +252,30 @@ CLASS zcl_zime001 DEFINITION
         "! additional parameter ของ goods receipt
         ext_goods_receipt     TYPE ztbc_param-param_ext  VALUE 'GOODS_RECEIPT',
       END OF gc_param.
+
+    CONSTANTS:
+      "! ข้อความ error ของการตรวจ inbound delivery
+      BEGIN OF gc_message,
+        "! ไม่ได้กรอก actual goods movement date
+        actual_date_required  TYPE string VALUE `Actual goods movement date is required.`,
+        "! delivery date ไม่เท่ากับ actual goods movement date
+        delivery_date_differs TYPE string VALUE `Delivery date must be the same as the actual goods movement date.`,
+        "! item ยังไม่มี batch
+        batch_missing         TYPE string VALUE `Batch is missing. Choose Batch Creation before saving.`,
+        "! batch ผิด format
+        batch_format_invalid  TYPE string VALUE `Batch must be in the format YYMMDDNNNN.`,
+        "! YYMMDD ของ batch ไม่เท่ากับ actual goods movement date
+        batch_date_differs    TYPE string VALUE `Batch date must be the same as the actual goods movement date.`,
+      END OF gc_message.
+
+    CONSTANTS:
+      "! ประเภทเอกสารของ SD
+      BEGIN OF gc_doc_category,
+        "! inbound delivery
+        inbound_delivery TYPE c LENGTH 4 VALUE '7',
+        "! purchase order
+        purchase_order   TYPE c LENGTH 4 VALUE 'V',
+      END OF gc_doc_category.
 
     "! เลข batch ที่จำไว้ข้าม item ใน save เดียวกันของ inbound delivery
     "! ให้ material เดียวกันใน delivery เดียวกันได้ batch เดียวกับ item แรก
@@ -253,7 +332,8 @@ CLASS zcl_zime001 DEFINITION
     "! PO type ที่ถูก exclude ใน constant parameter ไม่ต้องสร้างเลข batch
     "! material ต้องเปิดใช้ batch management
     "! material เดียวกันใน delivery เดียวกันได้ batch เดียวกับ item แรก
-    "! YYMMDD มาจาก delivery date ของ schedule line บรรทัดแรกของ PO item
+    "! delivery ที่ยังเป็นเลขชั่วคราวไม่ replace เลข batch
+    "! YYMMDD มาจาก actual goods movement date ของ delivery
     "! @parameter is_batch_allocation | parameter BATCH_ALLOCATION ของ BAdI
     "! @parameter rv_batch            | เลข batch ใหม่ หรือค่าว่างเมื่อไม่เข้าเงื่อนไข
     CLASS-METHODS get_batch_case_c
@@ -267,6 +347,35 @@ CLASS zcl_zime001 DEFINITION
     CLASS-METHODS get_remembered_batch
       IMPORTING is_batch_allocation TYPE ty_batch_allocation
       RETURNING VALUE(rv_batch)     TYPE charg_d.
+
+    "! item ที่ต้อง replace เลข batch
+    "! อ้างอิง purchase order
+    "! material เปิดใช้ batch management
+    "! PO type ไม่ถูก exclude ใน constant parameter PO_DOCTYPE_STO
+    "! @parameter it_delivery_items | item ของ delivery
+    "! @parameter rt_items          | item ที่ต้อง replace เลข batch
+    CLASS-METHODS get_relevant_items
+      IMPORTING it_delivery_items TYPE tt_delivery_item
+      RETURNING VALUE(rt_items)   TYPE tt_delivery_item.
+
+    "! ตรวจกฎของ inbound delivery โดยไม่อ่าน DB
+    "! แยกออกมาไว้ให้ test ส่ง header และ item เองได้
+    "! @parameter iv_processing_mode | โหมดการทำรายการ
+    "! @parameter is_delivery_head   | header ของ delivery
+    "! @parameter it_relevant_items  | item ที่ต้อง replace เลข batch
+    "! @parameter rv_message         | ข้อความ error ข้อแรกที่เจอ หรือค่าว่าง
+    CLASS-METHODS validate_delivery
+      IMPORTING iv_processing_mode TYPE ty_processing_mode
+                is_delivery_head   TYPE ty_delivery_head
+                it_relevant_items  TYPE tt_delivery_item
+      RETURNING VALUE(rv_message)  TYPE string.
+
+    "! เลข batch เป็น format YYMMDDNNNN โดยไม่เช็คว่าเป็นปีไหน
+    "! @parameter iv_batch | เลข batch ที่ต้องการตรวจ
+    "! @parameter rv_valid | abap_true เมื่อ format ถูก
+    CLASS-METHODS is_batch_format_valid
+      IMPORTING iv_batch        TYPE charg_d
+      RETURNING VALUE(rv_valid) TYPE abap_boolean.
 
 ENDCLASS.
 
@@ -552,6 +661,12 @@ CLASS zcl_zime001 IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    " delivery ที่ยังไม่ save มีเลขชั่วคราว
+    " ตอนสร้าง delivery ใช้เลข batch ปกติ แล้วค่อย replace ตอนแก้ delivery
+    IF is_batch_allocation-deliverydocument(1) = gc_temporary_delivery.
+      RETURN.
+    ENDIF.
+
     " ประเภทเอกสารอ้างอิงและ PO type ต้องผ่าน constant parameter
     " ไม่เจอ parameter -> ไม่สร้างเลข batch
     DATA(lo_param) = zcl_param=>create_instance( iv_company_code = ''
@@ -602,10 +717,21 @@ CLASS zcl_zime001 IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " BAdI ไม่ส่ง delivery date มา และ delivery ยังไม่ถูกบันทึก
-    " ใช้วันที่ปัจจุบันตามเวลา local แทน
-    " ถ้า delivery date ของ inbound delivery เป็นวันอื่น YYMMDD จะไม่ตรงกัน
-    rv_batch = generate_batch_number( is_batch_allocation-material ).
+    " YYMMDD มาจาก actual goods movement date ที่บันทึกไว้ตอนสร้าง delivery
+    " ถ้าแก้วันที่แล้วยังไม่ save จะได้วันที่เดิม
+    " check_inbound_delivery จะตรวจเจอตอน save
+    " อ่านไม่เจอหรือยังไม่มีวันที่ -> ไม่สร้างเลข batch
+    SELECT SINGLE ActualGoodsMovementDate
+      FROM I_DeliveryDocument WITH PRIVILEGED ACCESS
+      WHERE DeliveryDocument = @is_batch_allocation-deliverydocument
+      INTO @DATA(lv_actual_date).
+
+    IF sy-subrc <> 0 OR lv_actual_date IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    rv_batch = generate_batch_number( iv_material = is_batch_allocation-material
+                                      iv_date     = lv_actual_date ).
 
     " จำเลขไว้ให้ item ถัดไปของ material เดียวกันใน delivery เดียวกัน
     IF rv_batch IS NOT INITIAL.
@@ -654,4 +780,129 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD check_inbound_delivery.
+
+    " ตรวจเฉพาะ inbound delivery
+    IF is_delivery_head-sddocumentcategory <> gc_doc_category-inbound_delivery.
+      RETURN.
+    ENDIF.
+
+    " ตรวจเฉพาะตอนสร้างและแก้ delivery
+    IF iv_processing_mode <> gc_processing_mode-create
+    AND iv_processing_mode <> gc_processing_mode-change.
+      RETURN.
+    ENDIF.
+
+    rv_message = validate_delivery( iv_processing_mode = iv_processing_mode
+                                    is_delivery_head   = is_delivery_head
+                                    it_relevant_items  = get_relevant_items( it_delivery_items ) ).
+
+  ENDMETHOD.
+
+
+  METHOD get_relevant_items.
+
+    DATA lr_po_type TYPE RANGE OF ty_po_type.
+
+    " เอาเฉพาะ item ที่อ้างอิง purchase order และ material เปิดใช้ batch management
+    LOOP AT it_delivery_items INTO DATA(ls_delivery_item)
+      WHERE referencesddocumentcategory = gc_doc_category-purchase_order
+        AND referencesddocument IS NOT INITIAL
+        AND materialisbatchmanaged = abap_true.
+      APPEND ls_delivery_item TO rt_items.
+    ENDLOOP.
+
+    IF rt_items IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    " PO type ต้องผ่าน constant parameter
+    " ไม่เจอ parameter -> ถือว่าไม่มี item ที่ต้อง replace เลข batch
+    DATA(lo_param) = zcl_param=>create_instance( iv_company_code = ''
+                                                 iv_module_id    = gc_param-module_id ).
+
+    TRY.
+        lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
+                                       iv_param_name = gc_param-po_doctype_sto
+                             IMPORTING et_range      = lr_po_type ).
+      CATCH zcx_param.
+        CLEAR rt_items.
+        RETURN.
+    ENDTRY.
+
+    " range ของ PO type เป็นแบบ exclude
+    " PO type ที่ถูก exclude หรืออ่าน purchase order ไม่เจอ -> ไม่ต้อง replace เลข batch
+    LOOP AT rt_items INTO DATA(ls_item).
+
+      SELECT SINGLE PurchaseOrderType
+        FROM I_PurchaseOrderAPI01 WITH PRIVILEGED ACCESS
+        WHERE PurchaseOrder = @ls_item-referencesddocument
+        INTO @DATA(lv_po_type).
+
+      IF sy-subrc <> 0 OR lv_po_type NOT IN lr_po_type.
+        DELETE rt_items.
+      ENDIF.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD validate_delivery.
+
+    " ไม่มี item ที่ต้อง replace เลข batch -> ไม่ต้องตรวจ
+    IF it_relevant_items IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    " ต้องกรอก actual goods movement date
+    IF is_delivery_head-actualgoodsmovementdate IS INITIAL.
+      rv_message = gc_message-actual_date_required.
+      RETURN.
+    ENDIF.
+
+    " delivery date ต้องเท่ากับ actual goods movement date
+    IF is_delivery_head-deliverydate <> is_delivery_head-actualgoodsmovementdate.
+      rv_message = gc_message-delivery_date_differs.
+      RETURN.
+    ENDIF.
+
+    " ตอนสร้าง delivery ยังไม่ replace เลข batch จึงไม่ตรวจ batch
+    IF iv_processing_mode <> gc_processing_mode-change.
+      RETURN.
+    ENDIF.
+
+    LOOP AT it_relevant_items INTO DATA(ls_item).
+
+      " ยังไม่มี batch -> ต้องกด Batch Creation ก่อน save
+      IF ls_item-batch IS INITIAL.
+        rv_message = gc_message-batch_missing.
+        RETURN.
+      ENDIF.
+
+      " user อาจแก้ batch เองบนหน้าจอ
+      IF is_batch_format_valid( ls_item-batch ) = abap_false.
+        rv_message = gc_message-batch_format_invalid.
+        RETURN.
+      ENDIF.
+
+      " YYMMDD ของ batch ต้องเท่ากับ actual goods movement date
+      IF ls_item-batch(6) <> is_delivery_head-actualgoodsmovementdate+2(6).
+        rv_message = gc_message-batch_date_differs.
+        RETURN.
+      ENDIF.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD is_batch_format_valid.
+    " ใช้ปีของ batch เองเป็นปีที่เทียบ จึงไม่เช็คว่าเป็นปีไหน
+    " ปีจะถูกตรวจตอนเทียบ YYMMDD กับ actual goods movement date
+    rv_valid = check_batch_format( iv_batch        = iv_batch
+                                   iv_current_date = CONV d( |20{ iv_batch(2) }0101| ) ).
+  ENDMETHOD.
+
 ENDCLASS.
+
