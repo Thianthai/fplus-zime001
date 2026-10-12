@@ -111,3 +111,15 @@ code ส่ง `iv_param_ext` ทุกครั้งที่ parameter มี
 | `MMIM_ITEM_CHECK_DATA` / `BADI_MMIM_CHECK_MATDOC_ITEM` | Check Item Data | ต่ำ · check |
 | `FIRU_*` · `IM_M11_*` · `MMKZ_*` · `RV_M4_*` | form / report ของรัสเซีย ยูเครน คาซัคสถาน | ไม่เกี่ยว |
 
+### `MMIM_CREATE_GM_POSTING_DATE` (ผู้ใช้ส่ง doc + parameter 2026-10-12)
+
+- Enhancement spot `MMIM_CREATE_GOODS_MOVEMENT` · interface `IF_MMIM_CREATE_GM_POSTING_DATE` · Released ทั้ง key user และ developer extensibility
+- ใช้แก้ posting date ที่ระบุมาแล้ว ให้อยู่ในช่วง `minimalopenpostingdate` ถึง `maximalopenpostingdate`
+- Importing: `CTRLPOSTGFOREXTWHSEMGMTSYST` · `MAXIMALOPENPOSTINGDATE` · `MINIMALOPENPOSTINGDATE` · `OPENPOSTINGPERIODS` (table: company code · min/max date · from/to fiscal period · fiscal year variant) · `VALUECHAINCATEGORY` · `VALUECHAINSTEPTYPE` · `VALUECHAINTYPE`
+- Changing: **`POSTINGDATE`**
+
+ข้อสังเกต
+- เห็น posting date ✅ · ไม่ต้องแก้ค่า แค่อ่านแล้วเก็บ
+- **ไม่มีเลขเอกสาร / item / material** -> ผูกกับการเรียก `LOBM_AFTER_BATCH_NUMBER_INT` ได้ทาง session เท่านั้น (ค่าล่าสุดที่เก็บไว้)
+- ชื่อ enhancement spot และ field value chain บอกว่าเป็นของ framework สร้าง goods movement ใหม่ (Fiori / API) -> **ยังไม่รู้ว่า MIGO เรียกหรือไม่** และเรียกก่อนจองเลข batch หรือไม่ -> ต้องทดสอบ
+
