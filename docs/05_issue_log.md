@@ -37,7 +37,7 @@
   - ✅ CASE_B: MIGO A01 + R08 (F) ได้ `2610090001` (material 320000000)
   - CASE_C: VL31 หลาย item material เดียวกัน ต้องได้เลขเดียวกัน
   - user อื่นต้องได้เลขปกติ
-- OQ ค้าง: Q-34 (Posting Date MIGO) · Q-36 (แยก app ไม่ได้) · Q-39 (Delivery Date VL31)
+- OQ ค้าง: Q-34 (Posting Date MIGO) · Q-36 (แยก app ไม่ได้) · Q-39 (Delivery Date VL31) · Q-58 (delivery type ที่ต้องตรวจ)
 - **2026-10-12 process ใหม่ VL31 / VL32 (R-10)** ดู `09_vl32_final_check.md` · รอตอบ Q-53 ถึง Q-56
 - หลังฟังก์ชันนอลแก้ config order type `ZFG`: เปิดการเช็ค order type ใน `get_batch_case_a` กลับ และเปลี่ยน `PRODUCTION_ORDER_TYPE` กลับเป็น `EQ` `ZFG` (I-01)
 - **ตั้งแต่ 2026-10-09 (`87c29f2`) เช็ค user ทดสอบถูกปิด logic ทำงานกับทุก user บน DEV** (ผู้ใช้ตั้งใจ)
