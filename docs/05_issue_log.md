@@ -31,6 +31,7 @@
 | R-10 | 2026-10-12 | process ใหม่: VL31 ไม่ replace batch แต่บังคับ actual GM date = delivery date · VL32 replace batch และ validate format + YYMMDD = actual GM date + delivery date = actual GM date ผ่าน `YY1_SHP_DELIVERY_FINAL_CHECK` · แทน R-06 และเปลี่ยน CASE_C | `ZCL_ZIME001` · Custom Logic 2 ตัว | ✅ อยู่ใน repo `2b976b1` 2026-10-12 · รอ publish Custom Logic และทดสอบ VL31 / VL32 · `check_inbound_delivery` + `get_relevant_items` + `validate_delivery` + `is_batch_format_valid` · CASE_C ข้ามเลข `$` และใช้ actual GM date จาก `I_DeliveryDocument` |
 | R-11 | 2026-10-12 | CASE_B ใช้ posting date จริงของ MIGO: เก็บจาก `MMIM_CREATE_GM_POSTING_DATE` ใน static attribute · validate batch ด้วย `BADI_MMIM_CHECK_MATDOC_ITEM` (format + YYMMDD = posting date) | `ZCL_ZIME001` · Custom Logic `YY1_CREATE_GM_POSTING_DATE` · `YY1_CHECK_MATDOC_ITEM` | ✅ เสร็จ 2026-10-12 · repo `ca45433` · ทดสอบ 4 ข้อผ่าน · GI / transfer posting ให้ฟังก์ชันนอลทดสอบ |
 | R-12 | 2026-10-12 | สำรวจ: CO01 สร้างพร้อม Release ให้ได้เลข batch ด้วย · หา BAdI ของ production order ที่เห็น basic start date และถูกเรียกก่อนจองเลข batch แล้วเก็บใน static attribute (แยกตามเลข order ชั่วคราว) แบบเดียวกับ MIGO | ยังไม่ระบุ | 🔍 รอรายชื่อ BAdI |
+| R-13 | 2026-10-12 | ลบเช็ค user ทดสอบ (`gc_test_user` และ `IF` ใน `get_batch_number`) เปิดให้ทำงานเต็มรูปแบบ | `ZCL_ZIME001` | 🟨 ส่ง code 2026-10-12 |
 
 ## จุดที่ค้าง (อัปเดต 2026-10-09)
 
@@ -46,4 +47,4 @@
 - หลังฟังก์ชันนอลแก้ config order type `ZFG`: เปิดการเช็ค order type ใน `get_batch_case_a` กลับ และเปลี่ยน `PRODUCTION_ORDER_TYPE` กลับเป็น `EQ` `ZFG` (I-01)
 - **ตั้งแต่ 2026-10-09 (`87c29f2`) เช็ค user ทดสอบถูกปิด logic ทำงานกับทุก user บน DEV** (ผู้ใช้ตั้งใจ)
 - แก้ ABAP Doc ของ method `get_batch_case_c` ที่ยังพูดถึง schedule line (ไม่กระทบการทำงาน)
-- ก่อน transport: ลบ `gc_test_user` และเงื่อนไขใน `get_batch_number` · ลบส่วน log ใน Custom Logic · `ZCL_ZIME001_LOG` เปลี่ยนเป็น Not Released แล้วลบ · ลบ `ZIME001_LOG`
+- ก่อน transport: ลบส่วน log ใน Custom Logic · `ZCL_ZIME001_LOG` เปลี่ยนเป็น Not Released แล้วลบ · ลบ `ZIME001_LOG`
