@@ -58,4 +58,4 @@
 | Q-54 | **แยก VL31 กับ VL32 ใน BAdI สร้างเลข** | ✅ **ปิด 2026-10-12** — เลข delivery `$` = VL31 ไม่ replace · เลขจริง = VL32 replace |
 | Q-55 | **YYMMDD ของ VL32** | ✅ **ปิด 2026-10-12** — `I_DeliveryDocument-ActualGoodsMovementDate` (release C1) |
 | Q-56 | **รายละเอียด validate VL32** | ✅ **ปิด 2026-10-12** — (1) item ไม่มี batch: เช็ค material ด้วย logic เดิม เข้าเงื่อนไขให้ replace (2) format ต้องครบ YYMMDDNNNN (3) เงื่อนไขเหมือน CASE_C (4) ข้อความ error แยกตามเรื่อง ภาษาอังกฤษ |
-| Q-57 | **item ที่ยังไม่มี batch ตอน save VL32** — final check แก้ batch ไม่ได้ (item เป็น importing) · เสนอ error ให้กด Batch Creation · และ VL32 ต้องเช็ค Actual GM Date ว่างด้วยหรือไม่ | ผู้ใช้ | ⬜ |
+| Q-57 | **item ที่ยังไม่มี batch ตอน save VL32** | ✅ **ปิด 2026-10-12** — (ก) error ให้กด Batch Creation · VL32 เช็ค Actual GM Date ว่างด้วย · ทั้งหมดทำใน `ZCL_ZIME001` |
