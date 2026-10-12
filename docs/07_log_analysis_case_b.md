@@ -159,3 +159,16 @@ MIGO A01 + R08 · order 13000028 · กด Check · trace 13:36:27
 
 batch master `2610120001` ของ material 320000000 ยังอยู่ -> GR ถัดไปวันเดียวกันได้ `2610120002`
 
+### Trace `BADI_MMIM_CHECK_MATDOC_ITEM` ใน MIGO (2026-10-12 14:03:53)
+
+MIGO A01 + R08 · order 13000028 · กด Check · Custom Logic `YY1_CHECK_MATDOC_ITEM` ใส่ error ทดสอบทุกกรณี
+ลำดับใน trace เดียวกัน
+1. `YY1_CREATE_GM_POSTING_DATE` (15 ms)
+2. `YY1_AFTER_BATCH_NUMBER_INT` (114 ms) -> batch **`2610120002`** (0001 ถูกใช้แล้วจาก GR ที่ reverse ไป · running number ถูกต้อง)
+3. `YY1_CHECK_MATDOC_ITEM` (12 ms)
+   - `HEADER_MATDOC-POSTINGDATE` = 20261012 ✅ · `MATERIALDOCUMENT` ว่าง (ยังไม่ post)
+   - `ITEM_MATDOC-BATCH` = 2610120002 ✅ · `GOODSMOVEMENTTYPE` 101 · `GOODSMOVEMENTREFDOCTYPE` F · `MANUFACTURINGORDER` 000013000028 · `DELIVERYDOCUMENT` ว่าง · `MATERIAL` 000000000320000000
+   - MESSAGES ออก E "Transaction not allowed." -> MIGO แสดงไฟแดงที่ item และ log error ✅
+
+สรุป Q-60: ✅ ถูกเรียกตอน Check · หลัง BAdI สร้างเลข · field ครบ · error E แสดงใน MIGO และ item เป็นสีแดง
+
