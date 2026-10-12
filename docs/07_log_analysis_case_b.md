@@ -73,3 +73,20 @@ code ส่ง `iv_param_ext` ทุกครั้งที่ parameter มี
 - ยืนยันว่า MIGO R08 ส่ง `goodsmovementrefdoctype = F` และเลข production order มา โดย `ordercategory = 00` (ไม่ใช่ 10) -> `determine_case` ได้ CASE_B ถูกต้อง
 - ไม่ได้เลข -> `get_batch_case_b` ข้ามที่ขั้นใดขั้นหนึ่ง (I-03)
 | 11:44:17 | 320000000 (ZSFG) | 101 | F | 000013000028 | 00 | **2610090001** ✅ ทดสอบซ้ำหลัง maintain F |
+
+## วิเคราะห์: หา Posting Date จาก BAdI อื่นแล้วเก็บใน static attribute (2026-10-12)
+
+แนวคิดจากผู้ใช้: ใช้ BAdI อื่นใน MIGO ที่เห็น Posting Date เก็บค่าใส่ static attribute ก่อน `LOBM_AFTER_BATCH_NUMBER_INT` ถูกเรียก แบบเดียวกับ `gt_delivery_batch` ของ CASE_C
+
+เงื่อนไขที่ต้องครบทั้ง 3 ข้อ
+1. มี cloud BAdI ที่ถูกเรียกใน **MIGO** และส่ง Posting Date มา
+2. BAdI นั้นถูกเรียก **ก่อน** ระบบจองเลข batch (ตอนกด Check หรือตอนใส่ item)
+3. static attribute อยู่ข้าม BAdI ทั้งสองตัวใน session เดียวกัน
+
+ที่หาได้
+- cloud BAdI ของ goods receipt ที่มี header คือ `MMIM_GR4XY_PROVIDE_DATA` / `MMIM_GR4XY_CHECK_DATA` แต่ทำงานกับ Fiori app **Post Goods Receipt for Purchasing Document** ไม่ถูกเรียกใน MIGO (SAP Community)
+- `MB_MIGO_BADI` / `MB_DOCUMENT_BADI` เป็น classic BAdI ของ ECC ไม่พบว่า release บน Public Cloud
+- SAP KBA 3459964 รวบรวม feature gap ของ Inventory Management ใน Public Cloud
+
+สรุปเบื้องต้น: น่าจะทำไม่ได้ใน MIGO · ต้องให้ผู้ใช้ยืนยันในแอป Custom Logic ว่าไม่มี BAdI ของ MIGO ที่มี posting date
+

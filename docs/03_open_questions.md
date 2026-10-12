@@ -35,7 +35,7 @@
 | Q-31 | **CO01 ไม่มี order ใน DB** | ✅ **ปิด 2026-10-06** — (ค) ปรับ process: สร้างใน CO01 โดยไม่ Release แล้วค่อย release ใน CO02 / Mass Processing · code ข้ามเลข order ที่ขึ้นต้นด้วย `%` |
 | Q-32 | **`ordertype` มี U+200B ต่อท้าย** | ✅ **ปิด 2026-10-06** — ล้างในโค้ดด้วย `zcl_utility=>remove_invisible_char( )` (`5628054`) · เดิมใช้ `zcl_param=>sanitize( )` ซึ่งย้ายไป `ZCL_UTILITY` แล้ว (`fplus-zbcparam` `8cb234f` · `fplus-zbcutility` `6b260a1`) |
 | Q-33 | **ตัดการเช็ค status `I0002` ใน DB หรือไม่** | ✅ **ปิด 2026-10-06** — order type `ZFG` ตั้ง automatic batch creation **ตอน release** (ฟังก์ชันนอลยืนยัน) BAdI ถูกเรียก = กำลัง release -> ตัดการเช็ค status ทิ้ง |
-| Q-34 | **CASE_B ไม่มี Posting Date** ใน BAdI และเอกสารยังไม่ post · **ชั่วคราว: ใช้วันที่ปัจจุบัน local ผ่าน `ZCL_UTILITY=>get_local_datetime( )`** ผิดเมื่อ user แก้ Posting Date | ผู้ใช้ | ⬜ OQ ค้าง (2026-10-06) |
+| Q-34 | **CASE_B ไม่มี Posting Date** ใน BAdI และเอกสารยังไม่ post · **ชั่วคราว: ใช้วันที่ปัจจุบัน local ผ่าน `ZCL_UTILITY=>get_local_datetime( )`** ผิดเมื่อ user แก้ Posting Date | ผู้ใช้ | ⬜ OQ ค้าง (2026-10-06) · 2026-10-12 วิเคราะห์ทางเลือก BAdI อื่น + static attribute แล้ว น่าจะไม่มี BAdI ใน MIGO ที่มี posting date (ดู `07_log_analysis_case_b.md`) รอผู้ใช้ยืนยันในแอป Custom Logic |
 | Q-35 | **movement type ที่รองรับ** | ✅ **ปิด 2026-10-06** — ตอนนี้ `101` · เก็บใน constant parameter `IME001` / `GR_MOVEMENT_TYPE` (module MM) เพิ่มทีหลังได้ |
 | Q-36 | **แยก app ไม่ได้** — ต้อง support เฉพาะ MIGO แต่ BAdI ไม่บอก app · GR อ้างอิง PO จาก app อื่นจะเข้า CASE_B ด้วย | ผู้ใช้ | ⬜ OQ ค้าง (2026-10-06) หาทางออกหลังทำครบทุก case |
 | Q-37 | **BAdI ถูกเรียกตอน Check ไม่ใช่ Post** | ✅ **ปิด 2026-10-06** — ยอมรับ |
