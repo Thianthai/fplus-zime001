@@ -80,7 +80,23 @@ CLASS zcl_zime001 DEFINITION
       END OF ty_delivery_item,
 
       "! รายการ item ของ delivery
-      tt_delivery_item TYPE STANDARD TABLE OF ty_delivery_item WITH EMPTY KEY.
+      tt_delivery_item TYPE STANDARD TABLE OF ty_delivery_item WITH EMPTY KEY,
+
+      "! header ของ material document เฉพาะ field ที่ใช้ตรวจ
+      "! ชื่อ component ตรงกับ BAdI BADI_MMIM_CHECK_MATDOC_ITEM ให้ Custom Logic ส่งด้วย CORRESPONDING ได้
+      BEGIN OF ty_matdoc_header,
+        postingdate TYPE d,
+      END OF ty_matdoc_header,
+
+      "! item ของ material document เฉพาะ field ที่ใช้ตรวจ
+      "! ชื่อ component ตรงกับ BAdI BADI_MMIM_CHECK_MATDOC_ITEM ให้ Custom Logic ส่งด้วย CORRESPONDING ได้
+      BEGIN OF ty_matdoc_item,
+        material                TYPE c LENGTH 40,
+        batch                   TYPE charg_d,
+        goodsmovementtype       TYPE c LENGTH 3,
+        goodsmovementrefdoctype TYPE c LENGTH 1,
+        deliverydocument        TYPE c LENGTH 10,
+      END OF ty_matdoc_item.
 
     CONSTANTS:
       "! case ของธุรกรรมที่เรียก BAdI ตัวนี้
@@ -107,7 +123,8 @@ CLASS zcl_zime001 DEFINITION
         "! ประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter REF_DOC_TYPE
         "! material ต้องเปิดใช้ batch management ใน I_Product
         "! BAdI ถูกเรียกตอน Check และใช้เลขเดิมตอน Post
-        "! YYMMDD ใช้วันที่ปัจจุบันตามเวลา local เพราะ BAdI ไม่ส่ง posting date มา
+        "! YYMMDD มาจาก posting date ที่ BAdI MMIM_CREATE_GM_POSTING_DATE ส่งมาก่อนจองเลข batch
+        "! ตรวจเลข batch กับ posting date ด้วย check_goods_receipt_item ตอน Check และ Post
         "! GR จาก app อื่นที่ส่งค่าเหมือนกันจะเข้า case นี้ด้วย
         b TYPE ty_case VALUE 'CASE_B',
         "! CASE_C inbound delivery อ้างอิง purchase order
@@ -189,6 +206,25 @@ CLASS zcl_zime001 DEFINITION
                 it_delivery_items  TYPE tt_delivery_item
       RETURNING VALUE(rv_message)  TYPE string.
 
+    "! เก็บ posting date ของ material document ที่กำลังสร้าง
+    "! ใช้กับ Custom Logic YY1_CREATE_GM_POSTING_DATE ของ BAdI MMIM_CREATE_GM_POSTING_DATE
+    "! BAdI นี้ถูกเรียกก่อนจองเลข batch การสร้างเลข batch ของ goods receipt จึงใช้ค่านี้เป็น YYMMDD ได้
+    "! @parameter iv_posting_date | posting date ของ material document
+    CLASS-METHODS set_posting_date
+      IMPORTING iv_posting_date TYPE d.
+
+    "! ตรวจเลข batch ของ item ใน goods receipt
+    "! ใช้กับ Custom Logic YY1_CHECK_MATDOC_ITEM ของ BAdI BADI_MMIM_CHECK_MATDOC_ITEM
+    "! ตรวจเฉพาะ item ที่เข้าเงื่อนไขของ goods receipt ที่ต้องสร้างเลข batch
+    "! คืนข้อความ error หรือค่าว่างเมื่อผ่าน
+    "! @parameter is_header  | header ของ material document
+    "! @parameter is_item    | item ของ material document
+    "! @parameter rv_message | ข้อความ error หรือค่าว่าง
+    CLASS-METHODS check_goods_receipt_item
+      IMPORTING is_header         TYPE ty_matdoc_header
+                is_item           TYPE ty_matdoc_item
+      RETURNING VALUE(rv_message) TYPE string.
+
   PRIVATE SECTION.
 
     TYPES:
@@ -266,6 +302,8 @@ CLASS zcl_zime001 DEFINITION
         batch_format_invalid  TYPE string VALUE `Batch must be in the format YYMMDDNNNN.`,
         "! YYMMDD ของ batch ไม่เท่ากับ actual goods movement date
         batch_date_differs    TYPE string VALUE `Batch date must be the same as the actual goods movement date.`,
+        "! YYMMDD ของ batch ไม่เท่ากับ posting date
+        batch_posting_date_differs TYPE string VALUE `Batch date must be the same as the posting date.`,
       END OF gc_message.
 
     CONSTANTS:
@@ -280,6 +318,10 @@ CLASS zcl_zime001 DEFINITION
     "! เลข batch ที่จำไว้ข้าม item ใน save เดียวกันของ inbound delivery
     "! ให้ material เดียวกันใน delivery เดียวกันได้ batch เดียวกับ item แรก
     CLASS-DATA gt_delivery_batch TYPE tt_delivery_batch.
+
+    "! posting date ล่าสุดของ material document ที่กำลังสร้าง
+    "! BAdI MMIM_CREATE_GM_POSTING_DATE ส่งมาทุกครั้งที่กด Check ก่อนจองเลข batch
+    CLASS-DATA gv_posting_date TYPE d.
 
     "! วันที่ปัจจุบันตามเวลา local
     "! แปลงไม่สำเร็จจะได้ค่าว่าง
@@ -320,7 +362,8 @@ CLASS zcl_zime001 DEFINITION
     "! เลข batch ของ goods receipt อ้างอิง purchase order หรือ production order
     "! movement type และประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter
     "! material ต้องเปิดใช้ batch management
-    "! YYMMDD ใช้วันที่ปัจจุบันตามเวลา local เพราะ BAdI ไม่ส่ง posting date มา
+    "! YYMMDD มาจาก posting date ที่เก็บไว้ด้วย set_posting_date
+    "! ยังไม่มี posting date จะใช้วันที่ปัจจุบันตามเวลา local
     "! @parameter is_batch_allocation | parameter BATCH_ALLOCATION ของ BAdI
     "! @parameter rv_batch            | เลข batch ใหม่ หรือค่าว่างเมื่อไม่เข้าเงื่อนไข
     CLASS-METHODS get_batch_case_b
@@ -376,6 +419,32 @@ CLASS zcl_zime001 DEFINITION
     CLASS-METHODS is_batch_format_valid
       IMPORTING iv_batch        TYPE charg_d
       RETURNING VALUE(rv_valid) TYPE abap_boolean.
+
+    "! item เข้าเงื่อนไขของ goods receipt ที่ต้องสร้างเลข batch
+    "! ไม่มี inbound delivery
+    "! movement type และประเภทเอกสารอ้างอิงอยู่ใน constant parameter
+    "! material เปิดใช้ batch management
+    "! @parameter iv_movement_type | movement type
+    "! @parameter iv_ref_doc_type  | ประเภทเอกสารที่ goods movement อ้างอิง
+    "! @parameter iv_delivery      | เลข inbound delivery
+    "! @parameter iv_material      | material
+    "! @parameter rv_relevant      | abap_true เมื่อเข้าเงื่อนไข
+    CLASS-METHODS is_case_b_relevant
+      IMPORTING iv_movement_type   TYPE ty_movement_type
+                iv_ref_doc_type    TYPE ty_ref_doc_type
+                iv_delivery        TYPE ty_matdoc_item-deliverydocument
+                iv_material        TYPE matnr
+      RETURNING VALUE(rv_relevant) TYPE abap_boolean.
+
+    "! ตรวจเลข batch ของ goods receipt กับ posting date โดยไม่อ่าน DB
+    "! แยกออกมาไว้ให้ test ส่งค่าเองได้
+    "! @parameter iv_posting_date | posting date ของ material document
+    "! @parameter iv_batch        | เลข batch ของ item
+    "! @parameter rv_message      | ข้อความ error หรือค่าว่าง
+    CLASS-METHODS validate_goods_receipt_item
+      IMPORTING iv_posting_date   TYPE d
+                iv_batch          TYPE charg_d
+      RETURNING VALUE(rv_message) TYPE string.
 
 ENDCLASS.
 
@@ -600,52 +669,18 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
   METHOD get_batch_case_b.
 
-    DATA lr_movement_type TYPE RANGE OF ty_movement_type.
-    DATA lr_ref_doc_type  TYPE RANGE OF ty_ref_doc_type.
-
-    " รับของผ่าน inbound delivery ไม่ใช่ case นี้
-    IF is_batch_allocation-deliverydocument IS NOT INITIAL.
+    IF is_case_b_relevant( iv_movement_type = is_batch_allocation-goodsmovementtype
+                           iv_ref_doc_type  = is_batch_allocation-goodsmovementrefdoctype
+                           iv_delivery      = is_batch_allocation-deliverydocument
+                           iv_material      = is_batch_allocation-material ) = abap_false.
       RETURN.
     ENDIF.
 
-    " movement type และประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter
-    " ไม่เจอ parameter -> ไม่สร้างเลข batch
-    DATA(lo_param) = zcl_param=>create_instance( iv_company_code = ''
-                                                 iv_module_id    = gc_param-module_id ).
-
-    TRY.
-        lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
-                                       iv_param_name = gc_param-movement_type
-                                       iv_param_ext  = gc_param-ext_goods_receipt
-                             IMPORTING et_range      = lr_movement_type ).
-
-        lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
-                                       iv_param_name = gc_param-ref_doc_type
-                             IMPORTING et_range      = lr_ref_doc_type ).
-      CATCH zcx_param.
-        RETURN.
-    ENDTRY.
-
-    IF is_batch_allocation-goodsmovementtype       NOT IN lr_movement_type
-    OR is_batch_allocation-goodsmovementrefdoctype NOT IN lr_ref_doc_type.
-      RETURN.
-    ENDIF.
-
-    " material ต้องเปิดใช้ batch management
-    " อ่านไม่เจอ -> ไม่สร้างเลข batch
-    SELECT SINGLE IsBatchManagementRequired
-      FROM I_Product WITH PRIVILEGED ACCESS
-      WHERE Product = @is_batch_allocation-material
-      INTO @DATA(lv_batch_required).
-
-    IF lv_batch_required = abap_false.
-      RETURN.
-    ENDIF.
-
-    " BAdI ไม่ส่ง posting date มา และเอกสารยังไม่ถูกบันทึก
-    " ใช้วันที่ปัจจุบันตามเวลา local แทน
-    " ถ้า user แก้ posting date เป็นวันอื่น YYMMDD จะไม่ตรงกับ posting date
-    rv_batch = generate_batch_number( is_batch_allocation-material ).
+    " YYMMDD มาจาก posting date ที่ BAdI MMIM_CREATE_GM_POSTING_DATE ส่งมาก่อนจองเลข batch
+    " ยังไม่มี posting date -> generate_batch_number ใช้วันที่ปัจจุบันตามเวลา local
+    " ถ้า user แก้ posting date หลังได้เลข batch แล้ว check_goods_receipt_item จะตรวจเจอ
+    rv_batch = generate_batch_number( iv_material = is_batch_allocation-material
+                                      iv_date     = gv_posting_date ).
 
   ENDMETHOD.
 
@@ -902,6 +937,94 @@ CLASS zcl_zime001 IMPLEMENTATION.
     " ปีจะถูกตรวจตอนเทียบ YYMMDD กับ actual goods movement date
     rv_valid = check_batch_format( iv_batch        = iv_batch
                                    iv_current_date = CONV d( |20{ iv_batch(2) }0101| ) ).
+  ENDMETHOD.
+
+  METHOD set_posting_date.
+    gv_posting_date = iv_posting_date.
+  ENDMETHOD.
+
+
+  METHOD check_goods_receipt_item.
+
+    " item ที่ยังไม่มี batch ระบบ standard ตรวจเอง
+    IF is_item-batch IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    IF is_case_b_relevant( iv_movement_type = is_item-goodsmovementtype
+                           iv_ref_doc_type  = is_item-goodsmovementrefdoctype
+                           iv_delivery      = is_item-deliverydocument
+                           iv_material      = is_item-material ) = abap_false.
+      RETURN.
+    ENDIF.
+
+    rv_message = validate_goods_receipt_item( iv_posting_date = is_header-postingdate
+                                              iv_batch        = is_item-batch ).
+
+  ENDMETHOD.
+
+
+  METHOD is_case_b_relevant.
+
+    DATA lr_movement_type TYPE RANGE OF ty_movement_type.
+    DATA lr_ref_doc_type  TYPE RANGE OF ty_ref_doc_type.
+
+    rv_relevant = abap_false.
+
+    " รับของผ่าน inbound delivery ไม่ใช่ case นี้
+    IF iv_delivery IS NOT INITIAL.
+      RETURN.
+    ENDIF.
+
+    " movement type และประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter
+    " ไม่เจอ parameter -> ไม่เข้าเงื่อนไข
+    DATA(lo_param) = zcl_param=>create_instance( iv_company_code = ''
+                                                 iv_module_id    = gc_param-module_id ).
+
+    TRY.
+        lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
+                                       iv_param_name = gc_param-movement_type
+                                       iv_param_ext  = gc_param-ext_goods_receipt
+                             IMPORTING et_range      = lr_movement_type ).
+
+        lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
+                                       iv_param_name = gc_param-ref_doc_type
+                             IMPORTING et_range      = lr_ref_doc_type ).
+      CATCH zcx_param.
+        RETURN.
+    ENDTRY.
+
+    IF iv_movement_type NOT IN lr_movement_type
+    OR iv_ref_doc_type  NOT IN lr_ref_doc_type.
+      RETURN.
+    ENDIF.
+
+    " material ต้องเปิดใช้ batch management
+    " อ่านไม่เจอ -> ไม่เข้าเงื่อนไข
+    SELECT SINGLE IsBatchManagementRequired
+      FROM I_Product WITH PRIVILEGED ACCESS
+      WHERE Product = @iv_material
+      INTO @DATA(lv_batch_required).
+
+    rv_relevant = xsdbool( lv_batch_required = abap_true ).
+
+  ENDMETHOD.
+
+
+  METHOD validate_goods_receipt_item.
+
+    " user อาจระบุ batch เองบนหน้าจอ
+    IF is_batch_format_valid( iv_batch ) = abap_false.
+      rv_message = gc_message-batch_format_invalid.
+      RETURN.
+    ENDIF.
+
+    " YYMMDD ของ batch ต้องเท่ากับ posting date
+    " user อาจแก้ posting date หลังได้เลข batch แล้ว
+    IF iv_batch(6) <> iv_posting_date+2(6).
+      rv_message = gc_message-batch_posting_date_differs.
+    ENDIF.
+
   ENDMETHOD.
 
 ENDCLASS.

@@ -1,7 +1,8 @@
 CLASS ltc_batch_format DEFINITION DEFERRED.
 CLASS ltc_batch_number DEFINITION DEFERRED.
 CLASS ltc_inbound_delivery DEFINITION DEFERRED.
-CLASS zcl_zime001 DEFINITION LOCAL FRIENDS ltc_batch_format ltc_batch_number ltc_inbound_delivery.
+CLASS ltc_goods_receipt DEFINITION DEFERRED.
+CLASS zcl_zime001 DEFINITION LOCAL FRIENDS ltc_batch_format ltc_batch_number ltc_inbound_delivery ltc_goods_receipt.
 
 "! ทดสอบการตรวจ format ของเลข batch YYMMDDNNNN
 "! กำหนดวันที่ปัจจุบันเองผ่าน check_batch_format จึงไม่ขึ้นกับวันที่รัน test
@@ -462,6 +463,57 @@ CLASS ltc_inbound_delivery IMPLEMENTATION.
   METHOD change_passes.
     cl_abap_unit_assert=>assert_initial( act = validate( )
                                          msg = 'ข้อมูลถูกทุกข้อ' ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+"! ทดสอบการตรวจเลข batch ของ goods receipt กับ posting date
+"! ส่ง posting date และ batch เองผ่าน validate_goods_receipt_item จึงไม่อ่าน DB
+CLASS ltc_goods_receipt DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PRIVATE SECTION.
+
+    "! posting date สมมติ
+    CONSTANTS gc_posting_date TYPE d VALUE '20261008'.
+
+    "! batch ที่ YYMMDD ตรงกับ posting date ต้องผ่าน
+    METHODS batch_matches_posting_date FOR TESTING.
+    "! batch ผิด format ต้องไม่ผ่าน
+    METHODS batch_format_invalid       FOR TESTING.
+    "! YYMMDD ไม่เท่ากับ posting date ต้องไม่ผ่าน
+    METHODS batch_date_differs         FOR TESTING.
+
+ENDCLASS.
+
+
+CLASS ltc_goods_receipt IMPLEMENTATION.
+
+  METHOD batch_matches_posting_date.
+    cl_abap_unit_assert=>assert_initial( act = zcl_zime001=>validate_goods_receipt_item(
+                                                 iv_posting_date = gc_posting_date
+                                                 iv_batch        = '2610080001' )
+                                         msg = 'YYMMDD ตรงกับ posting date' ).
+  ENDMETHOD.
+
+
+  METHOD batch_format_invalid.
+    cl_abap_unit_assert=>assert_equals( act = zcl_zime001=>validate_goods_receipt_item(
+                                                iv_posting_date = gc_posting_date
+                                                iv_batch        = '0000000157' )
+                                        exp = zcl_zime001=>gc_message-batch_format_invalid
+                                        msg = 'batch เลขปกติจาก number range' ).
+  ENDMETHOD.
+
+
+  METHOD batch_date_differs.
+    cl_abap_unit_assert=>assert_equals( act = zcl_zime001=>validate_goods_receipt_item(
+                                                iv_posting_date = gc_posting_date
+                                                iv_batch        = '2610120002' )
+                                        exp = zcl_zime001=>gc_message-batch_posting_date_differs
+                                        msg = 'แก้ posting date หลังได้เลข batch แล้ว' ).
   ENDMETHOD.
 
 ENDCLASS.
