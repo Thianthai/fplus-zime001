@@ -54,3 +54,7 @@
 | Q-50 | **ข้อความ error** | ✅ **ปิด 2026-10-09** — ภาษาอังกฤษ ข้อความกลาง ไม่ระบุ item / batch / วันที่ · (จำกัด user ทดสอบ: ยังไม่ได้ตอบ ถามซ้ำใน Q-51) |
 | Q-51 | **R-06 รายละเอียดก่อนเขียน code** — (1) ยังไม่ Post GR (`actualgoodsmovementdate` ว่าง) เช็คแค่ Delivery Date = YYMMDD (2) จำกัดเฉพาะ user ทดสอบ `CB9980000010` เหมือน `ZCL_ZIME001` (3) วาง logic ใน `ZCL_ZIME001` | ผู้ใช้ | ⬜ |
 | Q-52 | **CASE_B รับ `REF_DOC_TYPE` ทั้ง B และ F** | ✅ **ปิด 2026-10-09** — (1) MIGO R08 รับของจาก production order เข้า CASE_B (2) YYMMDD = วันที่ปัจจุบัน (3) `REF_DOC_TYPE` maintain 2 แถว ext ว่าง: B และ F · CASE_B และ CASE_C ใช้ range เดียวกัน ไม่ส่ง `iv_param_ext` (4) ยังไม่มี log ของ MIGO R08 ทำ draft ไปก่อน |
+| Q-53 | **VL32 เรียก `LOBM_AFTER_BATCH_NUMBER_INT` หรือไม่ใน process ใหม่** — เดิมไม่เรียกเพราะ batch ถูกสร้างตอน VL31 · ถ้า VL31 ไม่สร้าง batch แล้ว VL32 ตอน Post GR อาจเรียก · ต้องดู log | ผู้ใช้ทดสอบ | ⬜ |
+| Q-54 | **แยก VL31 กับ VL32 ใน BAdI สร้างเลข** — เสนอ: เลข delivery ชั่วคราว `$` = VL31 ไม่ replace · เลขจริง = VL32 replace | ผู้ใช้ | ⬜ |
+| Q-55 | **YYMMDD ของ VL32** — เสนอ `ActualGoodsMovementDate` ของ delivery จาก DB (บันทึกไว้ตั้งแต่ VL31) ผ่าน CDS เช่น `I_DeliveryDocument` (ต้องเช็ค release C1) | ผู้ใช้เช็คใน ADT | ⬜ |
+| Q-56 | **รายละเอียด validate VL32** — (1) item ที่ยังไม่มี batch ให้ข้ามหรือ error (2) format = YYMMDDNNNN ครบ 10 หลัก วันที่มีจริง NNNN ไม่ใช่ 0000 หรือแค่ 6 ตัวแรก (3) เงื่อนไข "ต้อง replace" = อ้างอิง PO + PO type ไม่ใช่ ZP25 + material batch managed ใช่หรือไม่ (4) ข้อความ error แยกตามกฎหรือข้อความเดียว | ผู้ใช้ | ⬜ |

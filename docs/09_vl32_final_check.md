@@ -38,3 +38,20 @@ METHODS delivery_final_check
 - ต้องเก็บค่าจริงก่อน (Q-47)
 
 ## คำถาม (Q-47 ถึง Q-50 ใน `03_open_questions.md`)
+
+## Process ใหม่ของ VL31 / VL32 (ผู้ใช้แจ้ง 2026-10-12) — แทน R-06 เดิม
+
+| App | เลข batch | validate ใน `YY1_SHP_DELIVERY_FINAL_CHECK` |
+|---|---|---|
+| VL31 | **ยังไม่ replace** ใช้เลข standard | `actualgoodsmovementdate` ต้องไม่ว่าง (บังคับกรอก) · `deliverydate` = `actualgoodsmovementdate` |
+| VL32 | **replace เลข batch ที่นี่** | batch ต้องเป็น format YYMMDD · YYMMDD = `actualgoodsmovementdate` · `deliverydate` = `actualgoodsmovementdate` |
+
+- validate เฉพาะเมื่อเข้าเงื่อนไขที่ต้อง replace batch เท่านั้น
+- VL32 user อาจแก้ batch หรือ field อื่นบนหน้าจอได้ระหว่างทำงาน
+
+## ผลกระทบกับ design เดิม
+
+- CASE_C (VL31 ใน `LOBM_AFTER_BATCH_NUMBER_INT`) ต้องไม่ replace แล้ว
+- เดิมทดสอบพบว่า VL32 ไม่เรียก `LOBM_AFTER_BATCH_NUMBER_INT` (เพราะ batch ถูกสร้างตั้งแต่ VL31) -> ต้องรู้ว่าใน process ใหม่ VL32 เรียก BAdI นี้หรือไม่ และตอนไหน (Q-53)
+- YYMMDD ของ VL32 น่าจะมาจาก `actualgoodsmovementdate` ที่ถูกบันทึกไว้ตั้งแต่ VL31 (อ่านจาก DB ได้เพราะ delivery มีเลขจริงแล้ว)
+

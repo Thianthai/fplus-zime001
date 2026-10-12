@@ -27,6 +27,7 @@
 | R-06 | 2026-10-08 | **ทำท้ายสุด** · BAdI อีกตัวตอน VL32: validate ว่า Delivery Date = GR Actual Date และตรงกับ YYMMDD ของ batch ที่ gen ไว้ · ไม่ตรง -> error ห้าม Post · ยกเว้น PO type ZP25 (PO Intercom) ไม่เช็ค | ยังไม่ระบุ | ⏸️ รอทำหลัง CASE ทั้งหมด · 2026-10-09 ใช้ `LE_SHP_DELIVERY_FINAL_CHECK` · Custom Logic `YY1_SHP_DELIVERY_FINAL_CHECK` สร้างแล้ว · วิเคราะห์ signature ใน `09_vl32_final_check.md` · รอ Q-47 ถึง Q-50 |
 | R-08 | 2026-10-09 | CASE_B รับ MIGO A01 + R08 (production order · `goodsmovementrefdoctype = F`) เพิ่มจาก R01 · `REF_DOC_TYPE` ไม่ใช้ Additional Parameter แล้ว (B และ F) ใช้ร่วมกับ CASE_C | `ZCL_ZIME001` | ✅ **draft** อยู่ใน repo `e463163` 2026-10-09 · รอ maintain `REF_DOC_TYPE` B และ F แบบ ext ว่าง แล้วทดสอบ MIGO R08 |
 | R-09 | 2026-10-09 | CASE_C ใช้วันที่ปัจจุบัน local เป็น YYMMDD แทน delivery date ของ PO schedule line | `ZCL_ZIME001` | ✅ อยู่ใน repo `87c29f2` · ABAP Doc ของ method `get_batch_case_c` ยังเป็นข้อความเดิม (schedule line) · commit เดียวกัน comment `RETURN` ของเช็ค user ทดสอบใน `get_batch_number` -> **ผู้ใช้ยืนยันว่าตั้งใจ 2026-10-09** ให้ฟังก์ชันนอลทดสอบหลาย user · logic ทำงานกับทุก user บน DEV |
+| R-10 | 2026-10-12 | process ใหม่: VL31 ไม่ replace batch แต่บังคับ actual GM date = delivery date · VL32 replace batch และ validate format + YYMMDD = actual GM date + delivery date = actual GM date ผ่าน `YY1_SHP_DELIVERY_FINAL_CHECK` · แทน R-06 และเปลี่ยน CASE_C | `ZCL_ZIME001` · Custom Logic 2 ตัว | 🔍 design รอ Q-53 ถึง Q-56 |
 
 ## จุดที่ค้าง (อัปเดต 2026-10-09)
 
@@ -37,7 +38,7 @@
   - CASE_C: VL31 หลาย item material เดียวกัน ต้องได้เลขเดียวกัน
   - user อื่นต้องได้เลขปกติ
 - OQ ค้าง: Q-34 (Posting Date MIGO) · Q-36 (แยก app ไม่ได้) · Q-39 (Delivery Date VL31)
-- **2026-10-09 ผู้ใช้แจ้งว่า process ของ VL31 / VL32 จะปรับ** รอรายละเอียด -> CASE_C (VL31) และ R-06 (VL32 validate) พักไว้ก่อน
+- **2026-10-12 process ใหม่ VL31 / VL32 (R-10)** ดู `09_vl32_final_check.md` · รอตอบ Q-53 ถึง Q-56
 - หลังฟังก์ชันนอลแก้ config order type `ZFG`: เปิดการเช็ค order type ใน `get_batch_case_a` กลับ และเปลี่ยน `PRODUCTION_ORDER_TYPE` กลับเป็น `EQ` `ZFG` (I-01)
 - **ตั้งแต่ 2026-10-09 (`87c29f2`) เช็ค user ทดสอบถูกปิด logic ทำงานกับทุก user บน DEV** (ผู้ใช้ตั้งใจ)
 - แก้ ABAP Doc ของ method `get_batch_case_c` ที่ยังพูดถึง schedule line (ไม่กระทบการทำงาน)
