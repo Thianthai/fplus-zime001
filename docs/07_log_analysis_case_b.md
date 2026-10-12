@@ -139,3 +139,14 @@ MIGO A01 + R08 · order 13000028 · กด Check · trace 13:36:27
 - `YY1_AFTER_BATCH_NUMBER_INT` **ไม่ถูกเรียกซ้ำ** เพราะ item มี batch แล้ว -> batch ยังเป็น `2610120001` · ระบบขึ้น "Document is O.K."
 - ผล: ถ้าแก้ posting date หลังได้เลข batch แล้ว YYMMDD จะไม่ตรงกับ posting date -> ต้องมี validate หรือ business rule
 
+### `BADI_MMIM_CHECK_MATDOC_ITEM` (ผู้ใช้ส่ง doc + parameter 2026-10-12)
+
+- ใช้ check header และ item ของ material document แล้วส่ง message กลับ · **รองรับ MIGO** (และ SOAP API · OData API · GR without reference · GI / transfer posting)
+- Importing `HEADER_MATDOC`: `MATERIALDOCUMENT` · `MATERIALDOCUMENTYEAR` · `MATERIALDOCUMENTHEADERTEXT` · **`POSTINGDATE`** · `DOCUMENTDATE` · `CREATIONTIME` · `CREATEDBYUSER` · `CREATIONDATE` · `VERSIONFORPRINTINGSLIP`
+- Importing `ITEM_MATDOC` (ทีละ item): `MATERIAL` · `PLANT` · `STORAGELOCATION` · **`BATCH`** · **`GOODSMOVEMENTTYPE`** · `SUPPLIER` · `PURCHASEORDER` / item · `MANUFACTURINGORDER` / item · **`GOODSMOVEMENTREFDOCTYPE`** · `DELIVERYDOCUMENT` / item · `SHELFLIFEEXPIRATIONDATE` · `MANUFACTUREDATE` ฯลฯ
+- Changing `MESSAGES` (table): `MESSAGETYPE` (S E W I A) · `MESSAGETEXT` (220 · ใช้ได้ 200 ตัว)
+- doc: บาง process อาจไม่ได้เติมทุก field
+
+สรุป: ✅ มี posting date + batch + เงื่อนไขของ CASE_B ครบใน BAdI เดียว · validate ได้โดยไม่ต้องพึ่ง static attribute · ส่ง error ได้หลายข้อความ
+ยังต้องยืนยันด้วย trace: ถูกเรียกตอน Check · field `POSTINGDATE` และ `BATCH` มีค่าจริงใน MIGO
+
