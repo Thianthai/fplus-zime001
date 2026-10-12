@@ -70,3 +70,10 @@
 
 - ผู้ใช้ยืนยัน 2026-10-09: YYMMDD จาก Basic Start (`MfgOrderScheduledStartDate`) ถูกต้อง
 
+## R-12 สำรวจ BAdI ของ production order (2026-10-12)
+
+Business context ที่ค้นด้วยคำว่า Manufacturing / Process / Production
+- ไม่มี context ระดับ header ของ production order / manufacturing order โดยตรง
+- ที่ใกล้ที่สุด: **Manufacturing: Order Operation** · Manufacturing: Manage Process Order Operation (Fiori process order) · Manufacturing: Order Confirmation (ช้าเกินไป) · Manufacturing: Production Version (master data)
+- ยังไม่ได้ค้นด้วยคำว่า Order · Logistics · Batch
+
