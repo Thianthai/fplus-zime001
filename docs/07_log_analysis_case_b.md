@@ -172,3 +172,30 @@ MIGO A01 + R08 · order 13000028 · กด Check · Custom Logic `YY1_CHECK_MATD
 
 สรุป Q-60: ✅ ถูกเรียกตอน Check · หลัง BAdI สร้างเลข · field ครบ · error E แสดงใน MIGO และ item เป็นสีแดง
 
+## Custom Logic ของ R-11 (ส่ง 2026-10-12)
+
+`YY1_CREATE_GM_POSTING_DATE` (BAdI `MMIM_CREATE_GM_POSTING_DATE`)
+
+```abap
+" ZIME001 Automatic Batch Creation
+" เก็บ posting date ไว้ให้การสร้างเลข batch ของ goods receipt ใช้เป็น YYMMDD
+" ไม่แก้ posting date
+zcl_zime001=>set_posting_date( postingdate ).
+```
+
+`YY1_CHECK_MATDOC_ITEM` (BAdI `BADI_MMIM_CHECK_MATDOC_ITEM`)
+
+```abap
+" ZIME001 Automatic Batch Creation
+" ตรวจเลข batch ของ goods receipt ให้ตรงกับ posting date
+" ไม่ผ่าน -> แสดง error และไม่ให้ post
+DATA(lv_message) = zcl_zime001=>check_goods_receipt_item(
+                     is_header = CORRESPONDING #( header_matdoc )
+                     is_item   = CORRESPONDING #( item_matdoc ) ).
+
+IF lv_message IS NOT INITIAL.
+  APPEND VALUE #( messagetype = 'E'
+                  messagetext = lv_message ) TO messages.
+ENDIF.
+```
+
