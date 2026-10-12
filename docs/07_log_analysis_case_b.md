@@ -99,3 +99,15 @@ code ส่ง `iv_param_ext` ทุกครั้งที่ parameter มี
 | **Inventory Management: Material Document** | น่าจะใช่ · ระดับเอกสาร ใช้ได้กับทุก app ที่สร้าง material document · รอดูรายชื่อ BAdI |
 | **Inventory Management: Material Document Item** | น่าจะใช่ · ระดับ item · รอดูรายชื่อ BAdI |
 
+### BAdI ใต้ Material Document / Material Document Item (ผู้ใช้ส่งมา 2026-10-12)
+
+| BAdI | คำอธิบาย | ความน่าสนใจ |
+|---|---|---|
+| **`MMIM_CREATE_GM_POSTING_DATE`** | Change Posting Date of Material Document Before First Validation | ⭐ สูงสุด · เห็น posting date และถูกเรียก **ก่อน validation แรก** -> น่าจะก่อนจองเลข batch |
+| `MMIM_HEAD_PROVIDE_DATA` | Change Header in Material Documents | สูง · header มี posting date · ต้องรู้จังหวะ |
+| `MMIM_HEAD_CHECK_DATA` | Check Header in Material Documents | กลาง · check น่าจะตอน Post (ช้าเกินไป) |
+| **`MMIM_ITEM_PROVIDE_DATA`** | Change Item Data in Material Documents | ⭐ สูง · ถ้าแก้ batch ของ item ได้และเห็น posting date อาจกำหนดเลข batch ที่นี่เลยแทน `LOBM_AFTER_BATCH_NUMBER_INT` |
+| `MMIM_BATCH_MASTER` | Maintenance of Batch Master Data for Goods Movements | กลาง · ดูว่ามีอะไรให้แก้ |
+| `MMIM_ITEM_CHECK_DATA` / `BADI_MMIM_CHECK_MATDOC_ITEM` | Check Item Data | ต่ำ · check |
+| `FIRU_*` · `IM_M11_*` · `MMKZ_*` · `RV_M4_*` | form / report ของรัสเซีย ยูเครน คาซัคสถาน | ไม่เกี่ยว |
+
