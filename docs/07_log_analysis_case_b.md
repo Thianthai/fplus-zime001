@@ -90,3 +90,12 @@ code ส่ง `iv_param_ext` ทุกครั้งที่ parameter มี
 
 สรุปเบื้องต้น: น่าจะทำไม่ได้ใน MIGO · ต้องให้ผู้ใช้ยืนยันในแอป Custom Logic ว่าไม่มี BAdI ของ MIGO ที่มี posting date
 
+### Business Context ของ Inventory Management บน tenant (ผู้ใช้ส่งมา 2026-10-12)
+
+| Business Context | ใช้กับ MIGO ได้ไหม |
+|---|---|
+| Inventory Management: Fiori Apps Manage Stock, Transfer Stock in Plant and cross Plant | ไม่ใช่ · Fiori app |
+| Inventory Management: Goods Receipt for Fiori apps PurOrd, ProdnOrd, NoRef, InbDeliv | ไม่ใช่ · `MMIM_GR4XY_*` ของ Fiori GR app |
+| **Inventory Management: Material Document** | น่าจะใช่ · ระดับเอกสาร ใช้ได้กับทุก app ที่สร้าง material document · รอดูรายชื่อ BAdI |
+| **Inventory Management: Material Document Item** | น่าจะใช่ · ระดับ item · รอดูรายชื่อ BAdI |
+
