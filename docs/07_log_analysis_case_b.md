@@ -132,3 +132,10 @@ MIGO A01 + R08 · order 13000028 · กด Check · trace 13:36:27
 สรุป: ✅ MIGO เรียก `MMIM_CREATE_GM_POSTING_DATE` และเรียกก่อนจองเลข batch -> แนวคิดเก็บ posting date ใน static attribute ทำได้
 ยังต้องทดสอบ: posting date ที่ไม่ใช่วันนี้ · หลาย item · แก้ posting date หลัง Check แล้ว
 
+### ทดสอบแก้ posting date หลัง Check แล้ว (2026-10-12 13:42)
+
+- แก้ Posting Date เป็น 08.10.2026 แล้วกด Check อีกครั้ง
+- `YY1_CREATE_GM_POSTING_DATE` ถูกเรียกใหม่ · `POSTINGDATE` = 20261008 ✅ (ยืนยันว่าได้ค่าที่ user แก้)
+- `YY1_AFTER_BATCH_NUMBER_INT` **ไม่ถูกเรียกซ้ำ** เพราะ item มี batch แล้ว -> batch ยังเป็น `2610120001` · ระบบขึ้น "Document is O.K."
+- ผล: ถ้าแก้ posting date หลังได้เลข batch แล้ว YYMMDD จะไม่ตรงกับ posting date -> ต้องมี validate หรือ business rule
+
