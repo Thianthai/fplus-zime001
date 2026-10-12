@@ -208,6 +208,6 @@ ENDIF.
 | 3 | posting date 12.10.2026 -> Check ได้ batch `2610120002` -> แก้ posting date เป็น 11.10.2026 -> Check | ✅ error `Batch date must be the same as the posting date.` · item ไฟแดง |
 | 1 | posting date 11.10.2026 ก่อน Check ครั้งแรก | ✅ batch `2610110001` ไม่มี error |
 | 2 | ข้อ 1 แล้ว Post | ✅ post ได้ material document 5000000262 (batch `2610110001` · posting date 11.10.2026) |
-| 4 | ข้อ 3 แล้วกด Post ต้อง post ไม่ได้ | ⬜ |
+| 4 | ข้อ 3 แล้วกด Post ต้อง post ไม่ได้ | ✅ กด Check และ Post ได้ error เดียวกัน ไม่มีเอกสารถูกสร้าง |
 | 5 | GI / transfer posting ผ่านตามปกติ | ⬜ |
 

@@ -35,11 +35,11 @@
 - **รอฟังก์ชันนอลทดสอบ** ด้วย user `CB9980000010` แล้ว export `ZIME001_LOG` มาเทียบ
   - ✅ CASE_A: CO02 (`2610090003`) และ Mass Processing (`2610090004` `2610090005`) ผ่าน 2026-10-09
   - 🟨 CASE_B: MIGO A01 + R01 ได้ `2610090001` · รอ GR ใบถัดไปต้องได้ `0002`
-  - ✅ R-11: posting date 11.10 ได้ `2610110001` · แก้ posting date หลังได้เลขแล้วติด error · รอทดสอบ Post
+  - ✅ R-11: posting date 11.10 ได้ `2610110001` และ post ได้ · แก้ posting date หลังได้เลขแล้วติด error และ post ไม่ได้ · เหลือทดสอบ GI / transfer posting
   - ✅ CASE_B: MIGO A01 + R08 (F) ได้ `2610090001` (material 320000000)
   - CASE_C: VL31 หลาย item material เดียวกัน ต้องได้เลขเดียวกัน
   - user อื่นต้องได้เลขปกติ
-- OQ ค้าง: Q-34 (Posting Date MIGO) · Q-36 (แยก app ไม่ได้) · Q-39 (Delivery Date VL31) · Q-58 (delivery type ที่ต้องตรวจ)
+- OQ ค้าง: Q-36 (แยก app ไม่ได้) · Q-39 (Delivery Date VL31) · Q-58 (delivery type ที่ต้องตรวจ)
 - **2026-10-12 process ใหม่ VL31 / VL32 (R-10)** ดู `09_vl32_final_check.md` · รอตอบ Q-53 ถึง Q-56
 - หลังฟังก์ชันนอลแก้ config order type `ZFG`: เปิดการเช็ค order type ใน `get_batch_case_a` กลับ และเปลี่ยน `PRODUCTION_ORDER_TYPE` กลับเป็น `EQ` `ZFG` (I-01)
 - **ตั้งแต่ 2026-10-09 (`87c29f2`) เช็ค user ทดสอบถูกปิด logic ทำงานกับทุก user บน DEV** (ผู้ใช้ตั้งใจ)
