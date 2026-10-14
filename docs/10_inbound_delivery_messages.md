@@ -7,7 +7,7 @@
 ตรวจตอนกด Save เฉพาะเมื่อครบทุกข้อ
 - เป็น inbound delivery (`sddocumentcategory = 7` · บน tenant มี type `EL` `DIG` `HID` `ELR` `ECR` `ELST` · จะจำกัด type หรือไม่รอ OQ Q-58)
 - โหมดสร้าง (VL31) หรือแก้ (VL32) · โหมดแสดง (VL33) ไม่ตรวจ
-- มีอย่างน้อย 1 item ที่ต้อง replace เลข batch: อ้างอิง purchase order · material เป็น batch managed · PO type ไม่อยู่ใน constant parameter `PO_DOCTYPE_STO` (ตอนนี้ exclude ZP25)
+- มีอย่างน้อย 1 item ที่ต้อง replace เลข batch: อ้างอิง purchase order · material เป็น batch managed · PO type ไม่อยู่ใน constant parameter `PO_DOCTYPE_STO` (ตอนนี้ exclude ZP25 และ NBF2)
 
 แสดงทีละ 1 error (ข้อแรกที่เจอตามลำดับในตาราง) · message type E
 
