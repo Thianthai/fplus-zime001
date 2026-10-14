@@ -32,6 +32,7 @@
 | R-11 | 2026-10-12 | CASE_B ใช้ posting date จริงของ MIGO: เก็บจาก `MMIM_CREATE_GM_POSTING_DATE` ใน static attribute · validate batch ด้วย `BADI_MMIM_CHECK_MATDOC_ITEM` (format + YYMMDD = posting date) | `ZCL_ZIME001` · Custom Logic `YY1_CREATE_GM_POSTING_DATE` · `YY1_CHECK_MATDOC_ITEM` | ✅ เสร็จ 2026-10-12 · repo `ca45433` · ทดสอบ 4 ข้อผ่าน · GI / transfer posting ให้ฟังก์ชันนอลทดสอบ |
 | R-12 | 2026-10-12 | สำรวจ: CO01 สร้างพร้อม Release ให้ได้เลข batch ด้วย · หา BAdI ของ production order ที่เห็น basic start date และถูกเรียกก่อนจองเลข batch แล้วเก็บใน static attribute (แยกตามเลข order ชั่วคราว) แบบเดียวกับ MIGO | ยังไม่ระบุ | 🔍 รอรายชื่อ BAdI |
 | R-13 | 2026-10-12 | ลบเช็ค user ทดสอบ (`gc_test_user` และ `IF` ใน `get_batch_number`) เปิดให้ทำงานเต็มรูปแบบ | `ZCL_ZIME001` | ✅ อยู่ใน repo `343e77b` |
+| R-14 | 2026-10-14 | เปิดการเช็ค order type ใน CASE_A กลับ โดยเทียบทีละตัวอักษรเท่าความยาวของค่าใน constant parameter (`ZFG` = 3 ตัวแรก) · ใช้แทนการปิดเช็คชั่วคราวของ I-01 เพราะ PP ยังลบ / สร้าง order type `ZFG` ใหม่ไม่ได้ (รอ SAP Support) | `ZCL_ZIME001` | 🔍 design รอ confirm |
 
 ## จุดที่ค้าง (อัปเดต 2026-10-09)
 
