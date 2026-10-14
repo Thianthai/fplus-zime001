@@ -2,7 +2,9 @@ CLASS ltc_batch_format DEFINITION DEFERRED.
 CLASS ltc_batch_number DEFINITION DEFERRED.
 CLASS ltc_inbound_delivery DEFINITION DEFERRED.
 CLASS ltc_goods_receipt DEFINITION DEFERRED.
-CLASS zcl_zime001 DEFINITION LOCAL FRIENDS ltc_batch_format ltc_batch_number ltc_inbound_delivery ltc_goods_receipt.
+CLASS ltc_order_type DEFINITION DEFERRED.
+CLASS zcl_zime001 DEFINITION LOCAL FRIENDS ltc_batch_format ltc_batch_number ltc_inbound_delivery ltc_goods_receipt
+                                           ltc_order_type.
 
 "! ทดสอบการตรวจ format ของเลข batch YYMMDDNNNN
 "! กำหนดวันที่ปัจจุบันเองผ่าน check_batch_format จึงไม่ขึ้นกับวันที่รัน test
@@ -518,3 +520,82 @@ CLASS ltc_goods_receipt IMPLEMENTATION.
 
 ENDCLASS.
 
+
+"! ทดสอบการเทียบ order type ของ production order กับ constant parameter
+"! ส่ง order type และ range เองผ่าน is_order_type_matched จึงไม่อ่าน DB
+CLASS ltc_order_type DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PRIVATE SECTION.
+
+    "! ตัวอักษรที่มองไม่เห็น U+200B ที่ติดมากับ config ของ order type
+    CLASS-DATA gv_zero_width_space TYPE string.
+
+    "! สร้างตัวอักษร U+200B จาก UTF-8
+    CLASS-METHODS class_setup.
+
+    "! เรียก is_order_type_matched ด้วย range ที่มีแถวเดียว
+    "! @parameter iv_order_type | order type ของ production order
+    "! @parameter iv_low        | ค่า low ของ constant parameter
+    "! @parameter rv_matched    | ผลการเทียบ
+    METHODS match
+      IMPORTING iv_order_type     TYPE zcl_zime001=>ty_order_type
+                iv_low            TYPE zcl_zime001=>ty_order_type DEFAULT 'ZFG'
+      RETURNING VALUE(rv_matched) TYPE abap_boolean.
+
+    "! order type ที่มีตัวอักษรที่มองไม่เห็นติดท้ายต้องตรง
+    METHODS hidden_char_matches FOR TESTING.
+    "! order type ที่ไม่มีตัวอักษรที่มองไม่เห็นต้องตรง
+    METHODS clean_value_matches FOR TESTING.
+    "! order type อื่นต้องไม่ตรง
+    METHODS other_type_fails    FOR TESTING.
+    "! order type ที่ยาวเกิน 3 ตัวต้องไม่ตรงแม้ 3 ตัวแรกจะเหมือนกัน
+    METHODS longer_type_fails   FOR TESTING.
+
+ENDCLASS.
+
+
+CLASS ltc_order_type IMPLEMENTATION.
+
+  METHOD class_setup.
+    gv_zero_width_space = cl_abap_conv_codepage=>create_in( )->convert( CONV xstring( 'E2808B' ) ).
+  ENDMETHOD.
+
+
+  METHOD match.
+    rv_matched = zcl_zime001=>is_order_type_matched(
+                   iv_order_type = iv_order_type
+                   it_order_type = VALUE #( ( sign = 'I' option = 'EQ' low = iv_low ) ) ).
+  ENDMETHOD.
+
+
+  METHOD hidden_char_matches.
+    DATA(lv_hidden) = CONV zcl_zime001=>ty_order_type( |ZFG{ gv_zero_width_space }| ).
+
+    cl_abap_unit_assert=>assert_true( act = match( lv_hidden )
+                                      msg = 'order type มีตัวอักษรที่มองไม่เห็น' ).
+    cl_abap_unit_assert=>assert_true( act = match( iv_order_type = lv_hidden
+                                                   iv_low        = lv_hidden )
+                                      msg = 'ทั้ง order type และ parameter มีตัวอักษรที่มองไม่เห็น' ).
+  ENDMETHOD.
+
+
+  METHOD clean_value_matches.
+    cl_abap_unit_assert=>assert_true( act = match( 'ZFG' )
+                                      msg = 'order type ไม่มีตัวอักษรที่มองไม่เห็น' ).
+  ENDMETHOD.
+
+
+  METHOD other_type_fails.
+    cl_abap_unit_assert=>assert_false( act = match( 'ZPP' )
+                                       msg = 'order type อื่น' ).
+  ENDMETHOD.
+
+
+  METHOD longer_type_fails.
+    cl_abap_unit_assert=>assert_false( act = match( 'ZFG1' )
+                                       msg = 'order type ยาว 4 ตัว' ).
+  ENDMETHOD.
+
+ENDCLASS.

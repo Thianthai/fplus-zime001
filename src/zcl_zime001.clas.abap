@@ -112,7 +112,8 @@ CLASS zcl_zime001 DEFINITION
         "! BAdI ถูกเรียกตอน release เพราะ order type ตั้งให้สร้าง batch ตอน release
         "! order ที่ยังไม่ save มีเลขขึ้นต้นด้วย % จะข้าม
         "! ต้องสร้าง order ก่อน แล้วค่อย release ทีหลัง
-        "! order type ต้องอยู่ใน constant parameter PRODUCTION_ORDER_TYPE
+        "! 3 ตัวแรกของ order type ต้องตรงกับ 3 ตัวแรกของ constant parameter PRODUCTION_ORDER_TYPE
+        "! order type ที่ยาวเกิน 3 ตัวไม่สร้างเลข batch
         "! YYMMDD มาจากวันเริ่มตามแผนของ order ใน I_ManufacturingOrder
         a TYPE ty_case VALUE 'CASE_A',
         "! CASE_B goods receipt อ้างอิง purchase order หรือ production order
@@ -239,6 +240,9 @@ CLASS zcl_zime001 DEFINITION
       "! document type ของ purchase order
       ty_po_type        TYPE c LENGTH 4,
 
+      "! range ของ order type จาก constant parameter
+      tt_order_type_range TYPE RANGE OF ty_order_type,
+
       "! เลข batch ที่จำไว้ของ material ใน inbound delivery ที่กำลัง save
       BEGIN OF ty_delivery_batch,
         delivery_document TYPE c LENGTH 10,
@@ -265,7 +269,9 @@ CLASS zcl_zime001 DEFINITION
       "! ตัวแรกของเลข delivery ชั่วคราวที่ระบบให้ระหว่างสร้าง delivery ที่ยังไม่ save
       gc_temporary_delivery TYPE c LENGTH 1 VALUE '$',
       "! order category ของ production order
-      gc_order_category_production TYPE n LENGTH 2 VALUE '10'.
+      gc_order_category_production TYPE n LENGTH 2 VALUE '10',
+      "! จำนวนตัวอักษรของ order type ที่ใช้เทียบกับ constant parameter
+      gc_order_type_length TYPE i VALUE 3.
 
     CONSTANTS:
       "! key ของ constant parameter ใน ZTBC_PARAM
@@ -348,13 +354,26 @@ CLASS zcl_zime001 DEFINITION
 
     "! เลข batch ของ production order
     "! BAdI ถูกเรียกตอน release ของ order เพราะ order type ตั้งให้สร้าง batch ตอน release
-    "! order type ต้องอยู่ใน constant parameter
+    "! order type ต้องตรงกับ constant parameter ตามกฎของ is_order_type_matched
     "! YYMMDD มาจากวันเริ่มตามแผนของ order
     "! @parameter is_batch_allocation | parameter BATCH_ALLOCATION ของ BAdI
     "! @parameter rv_batch            | เลข batch ใหม่ หรือค่าว่างเมื่อไม่เข้าเงื่อนไข
     CLASS-METHODS get_batch_case_a
       IMPORTING is_batch_allocation TYPE ty_batch_allocation
       RETURNING VALUE(rv_batch)     TYPE charg_d.
+
+    "! order type ตรงกับ constant parameter โดยไม่อ่าน DB
+    "! ล้างตัวอักษรที่มองไม่เห็นออกจาก order type ก่อนนับความยาว
+    "! order type ที่ยาวเกิน 3 ตัวไม่ตรง
+    "! เทียบ 3 ตัวแรกของ order type กับ 3 ตัวแรกของค่า low ในแต่ละแถว
+    "! ไม่สนใจ sign และ option ของ constant parameter
+    "! @parameter iv_order_type | order type ของ production order
+    "! @parameter it_order_type | range ของ order type จาก constant parameter
+    "! @parameter rv_matched    | abap_true เมื่อตรงกับแถวใดแถวหนึ่ง
+    CLASS-METHODS is_order_type_matched
+      IMPORTING iv_order_type     TYPE ty_order_type
+                it_order_type     TYPE tt_order_type_range
+      RETURNING VALUE(rv_matched) TYPE abap_boolean.
 
     "! เลข batch ของ goods receipt อ้างอิง purchase order หรือ production order
     "! movement type และประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter
@@ -605,11 +624,7 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
   METHOD get_batch_case_a.
 
-    " ปิดการเช็ค order type ชั่วคราว
-    " config ของ order type มีตัวอักษรที่มองไม่เห็นติดอยู่ ทำให้เทียบกับ constant parameter ไม่ตรง
-    " เปิดกลับหลังแก้ config ของ order type แล้ว
-*    DATA lr_order_type TYPE RANGE OF ty_order_type.
-*    DATA lv_order_type TYPE ty_order_type.
+    DATA lr_order_type TYPE tt_order_type_range.
 
     " order ที่ยังไม่ save มีเลขชั่วคราว จึงอ่านวันเริ่มตามแผนจาก DB ไม่ได้
     " ข้ามไปใช้เลข batch ปกติ
@@ -618,26 +633,23 @@ CLASS zcl_zime001 IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " order type ต้องอยู่ใน constant parameter
+    " order type ต้องตรงกับ constant parameter
     " ไม่เจอ parameter -> ไม่สร้างเลข batch
-*    DATA(lo_param) = zcl_param=>create_instance( iv_company_code = ''
-*                                                 iv_module_id    = gc_param-module_id ).
-*
-*    TRY.
-*        lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
-*                                       iv_param_name = gc_param-production_order_type
-*                             IMPORTING et_range      = lr_order_type ).
-*      CATCH zcx_param.
-*        RETURN.
-*    ENDTRY.
-*
-*    " order type ใน config มีตัวอักษรที่มองไม่เห็นติดมา
-*    " ต้อง clear ออกก่อนเทียบกับ constant parameter
-*    lv_order_type = zcl_utility=>remove_invisible_char( is_batch_allocation-ordertype ).
-*
-*    IF lv_order_type NOT IN lr_order_type.
-*      RETURN.
-*    ENDIF.
+    DATA(lo_param) = zcl_param=>create_instance( iv_company_code = ''
+                                                 iv_module_id    = gc_param-module_id ).
+
+    TRY.
+        lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
+                                       iv_param_name = gc_param-production_order_type
+                             IMPORTING et_range      = lr_order_type ).
+      CATCH zcx_param.
+        RETURN.
+    ENDTRY.
+
+    IF is_order_type_matched( iv_order_type = is_batch_allocation-ordertype
+                              it_order_type = lr_order_type ) = abap_false.
+      RETURN.
+    ENDIF.
 
     " อ่านวันเริ่มตามแผนของ order
     " ไม่เช็ค status REL เพราะ BAdI ถูกเรียกตอน release ซึ่ง status ยังไม่ถูกบันทึก
@@ -653,6 +665,34 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
     rv_batch = generate_batch_number( iv_material = is_batch_allocation-material
                                       iv_date     = lv_start_date ).
+
+  ENDMETHOD.
+
+
+  METHOD is_order_type_matched.
+
+    DATA lv_order_type TYPE ty_order_type.
+
+    rv_matched = abap_false.
+
+    " config ของ order type มีตัวอักษรที่มองไม่เห็นติดอยู่
+    " ล้างออกก่อน จะได้นับความยาวเฉพาะตัวที่มองเห็น
+    lv_order_type = zcl_utility=>remove_invisible_char( iv_order_type ).
+
+    " order type ที่ยาวเกิน 3 ตัวไม่ replace เลข batch
+    " ไม่งั้น order type อื่นที่ขึ้นต้นเหมือนกันจะเข้าเงื่อนไขด้วย
+    IF strlen( lv_order_type ) > gc_order_type_length.
+      RETURN.
+    ENDIF.
+
+    " ใช้แค่ 3 ตัวแรกของค่า low
+    " ค่า low อาจมีตัวอักษรที่มองไม่เห็นติดมาท้ายค่า
+    LOOP AT it_order_type INTO DATA(ls_order_type).
+      IF lv_order_type(gc_order_type_length) = ls_order_type-low(gc_order_type_length).
+        rv_matched = abap_true.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -1018,4 +1058,3 @@ CLASS zcl_zime001 IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
-
