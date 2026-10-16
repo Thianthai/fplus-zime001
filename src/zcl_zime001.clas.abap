@@ -77,6 +77,8 @@ CLASS zcl_zime001 DEFINITION
         referencesddocument         TYPE c LENGTH 10,
         referencesddocumentitem     TYPE n LENGTH 6,
         referencesddocumentcategory TYPE c LENGTH 4,
+        plant                       TYPE c LENGTH 4,
+        storagelocation             TYPE c LENGTH 4,
       END OF ty_delivery_item,
 
       "! รายการ item ของ delivery
@@ -195,7 +197,8 @@ CLASS zcl_zime001 DEFINITION
 
     "! validate inbound delivery ก่อน save
     "! ใช้กับ Custom Logic YY1_SHP_DELIVERY_FINAL_CHECK ของ BAdI LE_SHP_DELIVERY_FINAL_CHECK
-    "! validate เฉพาะเมื่อมี item ที่ต้อง replace เลข batch
+    "! ตอนสร้าง delivery ทุก item ห้ามใช้ storage location ของ EWM ตาม constant parameter PLANT_EWM และ SLOC_EWM
+    "! การ validate อื่นทำเฉพาะเมื่อมี item ที่ต้อง replace เลข batch
     "! คืนข้อความ error ข้อแรกที่เจอ หรือค่าว่างเมื่อผ่าน
     "! @parameter iv_processing_mode | โหมดการทำรายการ ค่าจาก gc_processing_mode
     "! @parameter is_delivery_head   | header ของ delivery
@@ -243,6 +246,15 @@ CLASS zcl_zime001 DEFINITION
       "! range ของ order type จาก constant parameter
       tt_order_type_range TYPE RANGE OF ty_order_type,
 
+      "! plant ของ item ใน delivery
+      ty_plant            TYPE c LENGTH 4,
+      "! storage location ของ item ใน delivery
+      ty_storage_location TYPE c LENGTH 4,
+      "! range ของ plant จาก constant parameter
+      tt_plant_range      TYPE RANGE OF ty_plant,
+      "! range ของ storage location จาก constant parameter
+      tt_storage_location_range TYPE RANGE OF ty_storage_location,
+
       "! เลข batch ที่จำไว้ของ material ใน inbound delivery ที่กำลัง save
       BEGIN OF ty_delivery_batch,
         delivery_document TYPE c LENGTH 10,
@@ -288,6 +300,10 @@ CLASS zcl_zime001 DEFINITION
         ref_doc_type          TYPE ztbc_param-param_name VALUE 'REF_DOC_TYPE',
         "! PO type ของ stock transport order ที่ไม่ต้องสร้างเลข batch
         po_doctype_sto        TYPE ztbc_param-param_name VALUE 'PO_DOCTYPE_STO',
+        "! plant ที่ใช้ EWM
+        plant_ewm             TYPE ztbc_param-param_name VALUE 'PLANT_EWM',
+        "! storage location ที่ใช้ EWM
+        sloc_ewm              TYPE ztbc_param-param_name VALUE 'SLOC_EWM',
         "! additional parameter ของ goods receipt
         ext_goods_receipt     TYPE ztbc_param-param_ext  VALUE 'GOODS_RECEIPT',
       END OF gc_param.
@@ -299,6 +315,8 @@ CLASS zcl_zime001 DEFINITION
         actual_date_required  TYPE string VALUE `Actual goods movement date is required.`,
         "! delivery date ไม่เท่ากับ actual goods movement date
         delivery_date_differs TYPE string VALUE `Delivery date must be the same as the actual goods movement date.`,
+        "! item ใช้ storage location ของ EWM ตอนสร้าง delivery
+        ewm_storage_location  TYPE string VALUE `Please clear the EWM-related Storage Location field before saving and maintain it in VL32.`,
         "! batch ผิด format
         batch_format_invalid  TYPE string VALUE `Batch must be in the format YYMMDDNNNN.`,
         "! YYMMDD ของ batch ไม่เท่ากับ actual goods movement date
@@ -426,6 +444,18 @@ CLASS zcl_zime001 DEFINITION
                 is_delivery_head   TYPE ty_delivery_head
                 it_relevant_items  TYPE tt_delivery_item
       RETURNING VALUE(rv_message)  TYPE string.
+
+    "! มี item ที่ใช้ storage location ของ EWM โดยไม่อ่าน DB
+    "! แยกออกมาไว้ให้ test ส่ง item และ range เองได้
+    "! @parameter it_delivery_items   | item ของ delivery
+    "! @parameter it_plant            | range ของ plant ที่ใช้ EWM
+    "! @parameter it_storage_location | range ของ storage location ที่ใช้ EWM
+    "! @parameter rv_found            | abap_true เมื่อมี item ที่ plant และ storage location อยู่ใน range ทั้งคู่
+    CLASS-METHODS has_ewm_storage_location
+      IMPORTING it_delivery_items   TYPE tt_delivery_item
+                it_plant            TYPE tt_plant_range
+                it_storage_location TYPE tt_storage_location_range
+      RETURNING VALUE(rv_found)     TYPE abap_boolean.
 
     "! เลข batch เป็น format YYMMDDNNNN โดยไม่เช็คว่าเป็นปีไหน
     "! @parameter iv_batch | เลข batch ที่ต้องการ validate
@@ -845,6 +875,9 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
   METHOD check_inbound_delivery.
 
+    DATA lr_plant            TYPE tt_plant_range.
+    DATA lr_storage_location TYPE tt_storage_location_range.
+
     " validate เฉพาะ inbound delivery
     IF is_delivery_head-sddocumentcategory <> gc_doc_category-inbound_delivery.
       RETURN.
@@ -854,6 +887,36 @@ CLASS zcl_zime001 IMPLEMENTATION.
     IF iv_processing_mode <> gc_processing_mode-create
     AND iv_processing_mode <> gc_processing_mode-change.
       RETURN.
+    ENDIF.
+
+    " ตอนสร้าง delivery ห้ามใช้ storage location ของ EWM
+    " validate ทุก item ก่อนการ validate อื่น
+    " storage location ของ EWM ต้องไประบุใน VL32
+    IF iv_processing_mode = gc_processing_mode-create.
+
+      DATA(lo_param) = zcl_param=>create_instance( iv_company_code = ''
+                                                   iv_module_id    = gc_param-module_id ).
+
+      " ไม่เจอ parameter ตัวใดตัวหนึ่ง -> ข้ามการ validate นี้
+      TRY.
+          lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
+                                         iv_param_name = gc_param-plant_ewm
+                               IMPORTING et_range      = lr_plant ).
+
+          lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
+                                         iv_param_name = gc_param-sloc_ewm
+                               IMPORTING et_range      = lr_storage_location ).
+        CATCH zcx_param.
+          CLEAR: lr_plant, lr_storage_location.
+      ENDTRY.
+
+      IF has_ewm_storage_location( it_delivery_items   = it_delivery_items
+                                   it_plant            = lr_plant
+                                   it_storage_location = lr_storage_location ) = abap_true.
+        rv_message = gc_message-ewm_storage_location.
+        RETURN.
+      ENDIF.
+
     ENDIF.
 
     rv_message = validate_delivery( iv_processing_mode = iv_processing_mode
@@ -959,6 +1022,26 @@ CLASS zcl_zime001 IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD has_ewm_storage_location.
+
+    rv_found = abap_false.
+
+    " range ที่ว่างทำให้ IN เป็นจริงทุกค่า
+    " ไม่เจอ parameter จึงได้ range ว่าง -> ไม่ถือว่าเจอ
+    IF it_plant IS INITIAL OR it_storage_location IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    LOOP AT it_delivery_items TRANSPORTING NO FIELDS
+      WHERE plant           IN it_plant
+        AND storagelocation IN it_storage_location.
+      rv_found = abap_true.
+      RETURN.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD is_batch_format_valid.
     " ใช้ปีของ batch เองเป็นปีที่เทียบ จึงไม่เช็คว่าเป็นปีไหน
     " ปีจะถูก validate ตอนเทียบ YYMMDD กับ actual goods movement date
@@ -1055,4 +1138,5 @@ CLASS zcl_zime001 IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
 

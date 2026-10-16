@@ -380,6 +380,24 @@ CLASS ltc_inbound_delivery DEFINITION FINAL FOR TESTING
     METHODS batch_date_differs            FOR TESTING.
     "! ตอนแก้ delivery ข้อมูลถูกทุกข้อต้องผ่าน
     METHODS change_passes                 FOR TESTING.
+    "! plant และ storage location ของ EWM ต้องเจอ
+    METHODS ewm_location_found            FOR TESTING.
+    "! plant ของ EWM แต่ storage location อื่นต้องไม่เจอ
+    METHODS other_location_not_found      FOR TESTING.
+    "! storage location ของ EWM แต่ plant อื่นต้องไม่เจอ
+    METHODS other_plant_not_found         FOR TESTING.
+    "! storage location ว่างต้องไม่เจอ
+    METHODS blank_location_not_found      FOR TESTING.
+
+    "! เรียก has_ewm_storage_location ด้วย item เดียว
+    "! range ของ plant และ storage location เป็น 1000 ตามที่ maintain ไว้
+    "! @parameter iv_plant            | plant ของ item
+    "! @parameter iv_storage_location | storage location ของ item
+    "! @parameter rv_found            | ผลการเช็ค
+    METHODS has_ewm
+      IMPORTING iv_plant            TYPE zcl_zime001=>ty_plant
+                iv_storage_location TYPE zcl_zime001=>ty_storage_location
+      RETURNING VALUE(rv_found)     TYPE abap_boolean.
 
 ENDCLASS.
 
@@ -464,6 +482,44 @@ CLASS ltc_inbound_delivery IMPLEMENTATION.
   METHOD change_passes.
     cl_abap_unit_assert=>assert_initial( act = validate( )
                                          msg = 'ข้อมูลถูกทุกข้อ' ).
+  ENDMETHOD.
+
+
+  METHOD has_ewm.
+    rv_found = zcl_zime001=>has_ewm_storage_location(
+                 it_delivery_items   = VALUE #( ( deliverydocumentitem = '000010'
+                                                  plant                = iv_plant
+                                                  storagelocation      = iv_storage_location ) )
+                 it_plant            = VALUE #( ( sign = 'I' option = 'EQ' low = '1000' ) )
+                 it_storage_location = VALUE #( ( sign = 'I' option = 'EQ' low = '1000' ) ) ).
+  ENDMETHOD.
+
+
+  METHOD ewm_location_found.
+    cl_abap_unit_assert=>assert_true( act = has_ewm( iv_plant            = '1000'
+                                                     iv_storage_location = '1000' )
+                                      msg = 'plant และ storage location ของ EWM' ).
+  ENDMETHOD.
+
+
+  METHOD other_location_not_found.
+    cl_abap_unit_assert=>assert_false( act = has_ewm( iv_plant            = '1000'
+                                                      iv_storage_location = '1001' )
+                                       msg = 'storage location อื่น' ).
+  ENDMETHOD.
+
+
+  METHOD other_plant_not_found.
+    cl_abap_unit_assert=>assert_false( act = has_ewm( iv_plant            = '2000'
+                                                      iv_storage_location = '1000' )
+                                       msg = 'plant อื่น' ).
+  ENDMETHOD.
+
+
+  METHOD blank_location_not_found.
+    cl_abap_unit_assert=>assert_false( act = has_ewm( iv_plant            = '1000'
+                                                      iv_storage_location = '' )
+                                       msg = 'storage location ว่าง' ).
   ENDMETHOD.
 
 ENDCLASS.
@@ -598,4 +654,5 @@ CLASS ltc_order_type IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
 
