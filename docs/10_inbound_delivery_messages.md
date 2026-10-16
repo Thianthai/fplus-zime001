@@ -1,10 +1,12 @@
 # 10 — Error message ของ VL31 / VL32 (สำหรับฟังก์ชันนอล update spec)
 
-อัปเดต 2026-10-16 · code `ZCL_ZIME001=>check_inbound_delivery` (R-15 `eff572a`) · Custom Logic `YY1_SHP_DELIVERY_FINAL_CHECK` (BAdI `LE_SHP_DELIVERY_FINAL_CHECK`)
+อัปเดต 2026-10-16 · code `ZCL_ZIME001=>check_inbound_delivery` (R-16 `9969644`) · Custom Logic `YY1_SHP_DELIVERY_FINAL_CHECK` (BAdI `LE_SHP_DELIVERY_FINAL_CHECK`)
 
 ## เมื่อไรระบบตรวจ
 
-ตรวจตอนกด Save เฉพาะเมื่อครบทุกข้อ
+**ข้อ 1 (EWM · VL31 เท่านั้น)** ตรวจทุก item ของ inbound delivery โดยไม่สนใจว่าต้อง replace เลข batch หรือไม่ · Plant อยู่ใน constant parameter `PLANT_EWM` และ Storage Location อยู่ใน `SLOC_EWM` (ตอนนี้ 1000 / 1000) · ไม่เจอ parameter ตัวใดตัวหนึ่ง -> ไม่ตรวจข้อนี้
+
+**ข้อ 2 ถึง 5** ตรวจตอนกด Save เฉพาะเมื่อครบทุกข้อ
 - เป็น inbound delivery (`sddocumentcategory = 7` · บน tenant มี type `EL` `DIG` `HID` `ELR` `ECR` `ELST` · จะจำกัด type หรือไม่รอ OQ Q-58)
 - โหมดสร้าง (VL31) หรือแก้ (VL32) · โหมดแสดง (VL33) ไม่ตรวจ
 - มีอย่างน้อย 1 item ที่ต้อง replace เลข batch: อ้างอิง purchase order · material เป็น batch managed · PO type ไม่อยู่ใน constant parameter `PO_DOCTYPE_STO` (ตอนนี้ exclude ZP25 และ NBF2)
@@ -22,16 +24,17 @@
 
 | # | App | ตรวจอะไร | ติด error เมื่อ | Message | วิธีแก้ของ user |
 |---|---|---|---|---|---|
-| 1 | VL31 · VL32 | Actual GM Date ต้องกรอก | ไม่ได้กรอก Actual GM Date | `Actual goods movement date is required.` | กรอก Actual GM Date |
-| 2 | VL31 · VL32 | Delivery Date ต้องเท่ากับ Actual GM Date | Delivery Date กับ Actual GM Date ไม่ใช่วันเดียวกัน | `Delivery date must be the same as the actual goods movement date.` | แก้ให้เป็นวันเดียวกัน |
-| 3 | VL32 | batch ต้องเป็น format YYMMDDNNNN (เฉพาะ item ที่มี batch) | batch ไม่ใช่ตัวเลข 10 หลัก หรือ YYMMDD ไม่ใช่วันที่มีจริง หรือ NNNN เป็น 0000 · เช่นยังเป็นเลข standard จาก VL31 (ยังไม่กด Batch Creation) หรือ user แก้ batch เองผิด | `Batch must be in the format YYMMDDNNNN.` | กด Batch Creation หรือแก้ batch ให้ถูก format |
-| 4 | VL32 | YYMMDD ของ batch ต้องเท่ากับ Actual GM Date (เฉพาะ item ที่มี batch) | 6 ตัวแรกของ batch ไม่ตรงกับ Actual GM Date | `Batch date must be the same as the actual goods movement date.` | แก้ Actual GM Date หรือ batch ให้ตรงกัน |
+| 1 | VL31 | ห้ามใช้ Storage Location ของ EWM | item มี Plant และ Storage Location ตาม `PLANT_EWM` / `SLOC_EWM` | `Please clear the EWM-related Storage Location field before saving and maintain it in VL32.` | ลบ Storage Location ออกก่อน save แล้วไปใส่ใน VL32 |
+| 2 | VL31 · VL32 | Actual GM Date ต้องกรอก | ไม่ได้กรอก Actual GM Date | `Actual goods movement date is required.` | กรอก Actual GM Date |
+| 3 | VL31 · VL32 | Delivery Date ต้องเท่ากับ Actual GM Date | Delivery Date กับ Actual GM Date ไม่ใช่วันเดียวกัน | `Delivery date must be the same as the actual goods movement date.` | แก้ให้เป็นวันเดียวกัน |
+| 4 | VL32 | batch ต้องเป็น format YYMMDDNNNN (เฉพาะ item ที่มี batch) | batch ไม่ใช่ตัวเลข 10 หลัก หรือ YYMMDD ไม่ใช่วันที่มีจริง หรือ NNNN เป็น 0000 · เช่นยังเป็นเลข standard จาก VL31 (ยังไม่กด Batch Creation) หรือ user แก้ batch เองผิด | `Batch must be in the format YYMMDDNNNN.` | กด Batch Creation หรือแก้ batch ให้ถูก format |
+| 5 | VL32 | YYMMDD ของ batch ต้องเท่ากับ Actual GM Date (เฉพาะ item ที่มี batch) | 6 ตัวแรกของ batch ไม่ตรงกับ Actual GM Date | `Batch date must be the same as the actual goods movement date.` | แก้ Actual GM Date หรือ batch ให้ตรงกัน |
 
 ## ข้อควรรู้
 
-- Batch Creation อ่าน Actual GM Date ที่ **save ไว้แล้ว** ถ้าแก้ Actual GM Date ใน VL32 แล้วกด Batch Creation ก่อน save batch จะได้วันที่เดิม และติด error 4 ตอน save -> ต้องแก้ 6 ตัวแรกของ batch ให้ตรงวันที่ใหม่เอง
+- Batch Creation อ่าน Actual GM Date ที่ **save ไว้แล้ว** ถ้าแก้ Actual GM Date ใน VL32 แล้วกด Batch Creation ก่อน save batch จะได้วันที่เดิม และติด error 5 ตอน save -> ต้องแก้ 6 ตัวแรกของ batch ให้ตรงวันที่ใหม่เอง
 - item ที่ batch ว่างไม่ถูก validate ใน VL32 ปล่อยให้ทำงานตาม flow ต่อ (R-15 · ยกเลิก error `Batch is missing` แล้ว)
-- ทุก save ใน VL32 ต้องผ่านครบ 4 ข้อ รวมถึง save ที่ไม่ได้แก้ batch
+- ทุก save ใน VL32 ต้องผ่านข้อ 2 ถึง 5 รวมถึง save ที่ไม่ได้แก้ batch
 - ยังไม่ได้ทดสอบว่า error หยุด save ได้จริง (รอผลทดสอบ)
 
 ---
