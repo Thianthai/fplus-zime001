@@ -299,8 +299,6 @@ CLASS zcl_zime001 DEFINITION
         actual_date_required  TYPE string VALUE `Actual goods movement date is required.`,
         "! delivery date ไม่เท่ากับ actual goods movement date
         delivery_date_differs TYPE string VALUE `Delivery date must be the same as the actual goods movement date.`,
-        "! item ยังไม่มี batch
-        batch_missing         TYPE string VALUE `Batch is missing. Choose Batch Creation before saving.`,
         "! batch ผิด format
         batch_format_invalid  TYPE string VALUE `Batch must be in the format YYMMDDNNNN.`,
         "! YYMMDD ของ batch ไม่เท่ากับ actual goods movement date
@@ -430,7 +428,7 @@ CLASS zcl_zime001 DEFINITION
       RETURNING VALUE(rv_message)  TYPE string.
 
     "! เลข batch เป็น format YYMMDDNNNN โดยไม่เช็คว่าเป็นปีไหน
-    "! @parameter iv_batch | เลข batch ที่ต้องการvalidate
+    "! @parameter iv_batch | เลข batch ที่ต้องการ validate
     "! @parameter rv_valid | abap_true เมื่อ format ถูก
     CLASS-METHODS is_batch_format_valid
       IMPORTING iv_batch        TYPE charg_d
@@ -852,7 +850,7 @@ CLASS zcl_zime001 IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " validateเฉพาะตอนสร้างและแก้ delivery
+    " validate เฉพาะตอนสร้างและแก้ delivery
     IF iv_processing_mode <> gc_processing_mode-create
     AND iv_processing_mode <> gc_processing_mode-change.
       RETURN.
@@ -939,22 +937,21 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
     LOOP AT it_relevant_items INTO DATA(ls_item).
 
-      " ยังไม่มี batch -> ต้องกด Batch Creation ก่อน save
+      " ยังไม่มี batch -> ไม่ validate ปล่อยให้ทำงานตาม flow ต่อ
       IF ls_item-batch IS INITIAL.
-*        rv_message = gc_message-batch_missing.
-*        RETURN.
+        CONTINUE.
       ENDIF.
 
       " user อาจแก้ batch เองบนหน้าจอ
       IF is_batch_format_valid( ls_item-batch ) = abap_false.
-*        rv_message = gc_message-batch_format_invalid.
-*        RETURN.
+        rv_message = gc_message-batch_format_invalid.
+        RETURN.
       ENDIF.
 
       " YYMMDD ของ batch ต้องเท่ากับ actual goods movement date
       IF ls_item-batch(6) <> is_delivery_head-actualgoodsmovementdate+2(6).
-*        rv_message = gc_message-batch_date_differs.
-*        RETURN.
+        rv_message = gc_message-batch_date_differs.
+        RETURN.
       ENDIF.
 
     ENDLOOP.
@@ -1058,3 +1055,4 @@ CLASS zcl_zime001 IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+

@@ -372,8 +372,8 @@ CLASS ltc_inbound_delivery DEFINITION FINAL FOR TESTING
     METHODS delivery_date_differs         FOR TESTING.
     "! ตอนสร้าง delivery ไม่ตรวจ batch
     METHODS create_skips_batch            FOR TESTING.
-    "! ตอนแก้ delivery item ที่ยังไม่มี batch ต้องไม่ผ่าน
-    METHODS batch_missing                 FOR TESTING.
+    "! ตอนแก้ delivery item ที่ยังไม่มี batch ต้องผ่านโดยไม่ validate
+    METHODS blank_batch_passes            FOR TESTING.
     "! ตอนแก้ delivery batch ผิด format ต้องไม่ผ่าน
     METHODS batch_format_invalid          FOR TESTING.
     "! ตอนแก้ delivery YYMMDD ไม่เท่ากับ actual goods movement date ต้องไม่ผ่าน
@@ -441,10 +441,9 @@ CLASS ltc_inbound_delivery IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD batch_missing.
-    cl_abap_unit_assert=>assert_equals( act = validate( iv_batch = '' )
-                                        exp = zcl_zime001=>gc_message-batch_missing
-                                        msg = 'ยังไม่มี batch' ).
+  METHOD blank_batch_passes.
+    cl_abap_unit_assert=>assert_initial( act = validate( iv_batch = '' )
+                                         msg = 'ยังไม่มี batch' ).
   ENDMETHOD.
 
 
@@ -599,3 +598,4 @@ CLASS ltc_order_type IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
