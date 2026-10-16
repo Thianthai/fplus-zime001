@@ -14,7 +14,7 @@
 | I-02 | 2026-10-09 | MIGO 2 รอบได้ `2610090001` ซ้ำกัน (PO 2110000127 item 00010) | ไม่ใช่ปัญหา · ผู้ใช้ยืนยันรอบ 1 ไม่ได้ Post batch จึงไม่ถูกบันทึก · รอบ 2 Post สำเร็จด้วย `2610090001` | — | ✅ ปิด 2026-10-09 · รอทดสอบใบถัดไปต้องได้ `2610090002` |
 | I-03 | 2026-10-09 | MIGO A01 + R08 (`goodsmovementrefdoctype = F` · material 320000000 ZSFG) ไม่ได้เลข YYMMDDNNNN ตอน 11:23 UTC | ช่วงเวลา: ทดสอบก่อน maintain `REF_DOC_TYPE` F เสร็จ · ไม่ใช่ปัญหาของ code | — | ✅ ปิด 2026-10-09 · ทดสอบซ้ำ 11:44 UTC order 000013000028 ได้ `2610090001` |
 | I-04 | 2026-10-12 | MIGO A01 + R08 order 11000040 (user WC · material 320000000) posting date 12.10.2026 · item แสดง batch `2610110002` (YYMMDD = 11.10 ไม่ใช่ 12.10) · ช่อง Batch ในแท็บ Batch ว่าง · log: W `No batch numbers could be determined` + E `Enter Batch` | ยังไม่รู้ · สงสัย (1) `gv_posting_date` ค้างเป็น 11.10 จากรอบก่อนใน session เดียวกัน (2) เลข `2610110002` ถูกสร้างไปแล้วหรือค้างอยู่ ระบบจึงสร้าง batch ไม่ได้ | ยังไม่รู้ | 🔍 รอ log / trace / ขั้นตอนที่ทำ |
-| I-05 | 2026-10-14 | ฟังก์ชันนอลขอปิดการเช็ค batch ของ VL32 ชั่วคราวเพื่อทดสอบ process | ผู้ใช้ comment `rv_message = ...` และ `RETURN` ของข้อ 3 ถึง 5 ใน `validate_delivery` (`86333c3`) · save VL32 ได้แม้ batch ว่าง ผิด format หรือ YYMMDD ไม่ตรง Actual GM Date · ข้อ 1 และ 2 ยังทำงาน | **เปิดกลับใน push ครั้งถัดไป** (ผู้ใช้สั่งให้เตือน) · ตอนปิดอยู่ unit test `batch_missing` `batch_format_invalid` `batch_date_differs` ของ `ltc_inbound_delivery` จะ fail · แก้เว้นวรรคหายใน comment 2 จุดพร้อมกัน (`ที่ต้องการvalidate` และ `validateเฉพาะ`) | 🟥 ปิดชั่วคราว |
+| I-05 | 2026-10-14 | ฟังก์ชันนอลขอปิดการเช็ค batch ของ VL32 ชั่วคราวเพื่อทดสอบ process | ผู้ใช้ comment `rv_message = ...` และ `RETURN` ของข้อ 3 ถึง 5 ใน `validate_delivery` (`86333c3`) · save VL32 ได้แม้ batch ว่าง ผิด format หรือ YYMMDD ไม่ตรง Actual GM Date · ข้อ 1 และ 2 ยังทำงาน | **เปิดกลับใน push ครั้งถัดไป** (ผู้ใช้สั่งให้เตือน) · ตอนปิดอยู่ unit test `batch_missing` `batch_format_invalid` `batch_date_differs` ของ `ltc_inbound_delivery` จะ fail · แก้เว้นวรรคหายใน comment 2 จุดพร้อมกัน (`ที่ต้องการvalidate` และ `validateเฉพาะ`) | ✅ 2026-10-16 เปิดข้อ 4 และ 5 กลับใน R-15 (`eff572a`) · ข้อ 3 ยกเลิกถาวร |
 
 ## Requirement เพิ่มเติม
 
@@ -34,11 +34,10 @@
 | R-12 | 2026-10-12 | สำรวจ: CO01 สร้างพร้อม Release ให้ได้เลข batch ด้วย · หา BAdI ของ production order ที่เห็น basic start date และถูกเรียกก่อนจองเลข batch แล้วเก็บใน static attribute (แยกตามเลข order ชั่วคราว) แบบเดียวกับ MIGO | ยังไม่ระบุ | 🔍 รอรายชื่อ BAdI |
 | R-13 | 2026-10-12 | ลบเช็ค user ทดสอบ (`gc_test_user` และ `IF` ใน `get_batch_number`) เปิดให้ทำงานเต็มรูปแบบ | `ZCL_ZIME001` | ✅ อยู่ใน repo `343e77b` |
 | R-14 | 2026-10-14 | เปิดการเช็ค order type ใน CASE_A กลับ โดยเทียบ 3 ตัวแรกของ order type กับ 3 ตัวแรกของค่า low ใน constant parameter · ล้างตัวอักษรที่มองไม่เห็นออกจาก order type ก่อน แล้ว order type ที่ยาวเกิน 3 ตัว (เช่น `ZFG1`) reject · ไม่สนใจ sign / option ของ param (param ไม่มี `E`) · ใช้แทนการปิดเช็คชั่วคราวของ I-01 เพราะ PP ยังลบ / สร้าง order type `ZFG` ใหม่ไม่ได้ (รอ SAP Support) | `ZCL_ZIME001` | ✅ `26beadb` 2026-10-14 · `is_order_type_matched` + `tt_order_type_range` + `gc_order_type_length` · unit test 42 ตัวผ่าน · รอทดสอบ CO02 |
-| R-15 | 2026-10-16 | VL32 save: batch ว่างไม่ต้อง validate ปล่อยให้วิ่งตาม flow ต่อ · validate format และ YYMMDD เฉพาะ batch ที่ไม่ว่าง · ลบ error `Batch is missing` และ constant `gc_message-batch_missing` · เปิดข้อ 4 และ 5 กลับ (ปิด I-05) · แก้เว้นวรรคหายใน comment 2 จุด | `ZCL_ZIME001` | 🔍 design confirm แล้ว รอส่ง code |
+| R-15 | 2026-10-16 | VL32 save: batch ว่างไม่ต้อง validate ปล่อยให้วิ่งตาม flow ต่อ · validate format และ YYMMDD เฉพาะ batch ที่ไม่ว่าง · ลบ error `Batch is missing` และ constant `gc_message-batch_missing` · เปิดข้อ 4 และ 5 กลับ (ปิด I-05) · แก้เว้นวรรคหายใน comment 2 จุด | `ZCL_ZIME001` | ✅ `eff572a` 2026-10-16 · unit test 42 ตัวผ่าน · รอทดสอบ VL32 (batch ว่าง save ได้ · เลข standard ติด format · วันที่ไม่ตรงติด date) |
 
 ## จุดที่ค้าง (อัปเดต 2026-10-09)
 
-- ⚠️ **push ครั้งถัดไป: เปิดการเช็ค batch ของ VL32 กลับ (I-05)** และแก้เว้นวรรคหายใน comment 2 จุด
 
 - **รอฟังก์ชันนอลทดสอบ** ด้วย user `CB9980000010` แล้ว export `ZIME001_LOG` มาเทียบ
   - ✅ CASE_A: CO02 (`2610090003`) และ Mass Processing (`2610090004` `2610090005`) ผ่าน 2026-10-09
