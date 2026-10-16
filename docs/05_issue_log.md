@@ -34,6 +34,7 @@
 | R-12 | 2026-10-12 | สำรวจ: CO01 สร้างพร้อม Release ให้ได้เลข batch ด้วย · หา BAdI ของ production order ที่เห็น basic start date และถูกเรียกก่อนจองเลข batch แล้วเก็บใน static attribute (แยกตามเลข order ชั่วคราว) แบบเดียวกับ MIGO | ยังไม่ระบุ | 🔍 รอรายชื่อ BAdI |
 | R-13 | 2026-10-12 | ลบเช็ค user ทดสอบ (`gc_test_user` และ `IF` ใน `get_batch_number`) เปิดให้ทำงานเต็มรูปแบบ | `ZCL_ZIME001` | ✅ อยู่ใน repo `343e77b` |
 | R-14 | 2026-10-14 | เปิดการเช็ค order type ใน CASE_A กลับ โดยเทียบ 3 ตัวแรกของ order type กับ 3 ตัวแรกของค่า low ใน constant parameter · ล้างตัวอักษรที่มองไม่เห็นออกจาก order type ก่อน แล้ว order type ที่ยาวเกิน 3 ตัว (เช่น `ZFG1`) reject · ไม่สนใจ sign / option ของ param (param ไม่มี `E`) · ใช้แทนการปิดเช็คชั่วคราวของ I-01 เพราะ PP ยังลบ / สร้าง order type `ZFG` ใหม่ไม่ได้ (รอ SAP Support) | `ZCL_ZIME001` | ✅ `26beadb` 2026-10-14 · `is_order_type_matched` + `tt_order_type_range` + `gc_order_type_length` · unit test 42 ตัวผ่าน · รอทดสอบ CO02 |
+| R-15 | 2026-10-16 | VL32 save: batch ว่างไม่ต้อง validate ปล่อยให้วิ่งตาม flow ต่อ · validate format และ YYMMDD เฉพาะ batch ที่ไม่ว่าง · ลบ error `Batch is missing` และ constant `gc_message-batch_missing` · เปิดข้อ 4 และ 5 กลับ (ปิด I-05) · แก้เว้นวรรคหายใน comment 2 จุด | `ZCL_ZIME001` | 🔍 design confirm แล้ว รอส่ง code |
 
 ## จุดที่ค้าง (อัปเดต 2026-10-09)
 
