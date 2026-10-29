@@ -65,6 +65,7 @@ CLASS zcl_zime001 DEFINITION
         sddocumentcategory      TYPE c LENGTH 4,
         deliverydate            TYPE d,
         actualgoodsmovementdate TYPE d,
+        deliverydocumenttype    TYPE c LENGTH 4,
       END OF ty_delivery_head,
 
       "! item ของ delivery เฉพาะ field ที่ใช้ validate
@@ -134,6 +135,7 @@ CLASS zcl_zime001 DEFINITION
         "! App: Change Inbound Delivery (VL32) ตอนกดปุ่ม Batch Creation
         "! Create Inbound Delivery (VL31) ไม่ replace เลข batch เพราะ delivery ยังเป็นเลขชั่วคราว
         "! ต้องมี inbound delivery และ purchase order
+        "! delivery type ต้องอยู่ใน constant parameter INBOUND_DOCTYPE
         "! ประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter REF_DOC_TYPE
         "! PO type ที่ถูก exclude ใน constant parameter PO_DOCTYPE_STO ไม่สร้างเลข batch
         "! material ต้องเปิดใช้ batch management ใน I_Product-IsBatchManagementRequired
@@ -197,6 +199,7 @@ CLASS zcl_zime001 DEFINITION
 
     "! validate inbound delivery ก่อน save
     "! ใช้กับ Custom Logic YY1_SHP_DELIVERY_FINAL_CHECK ของ BAdI LE_SHP_DELIVERY_FINAL_CHECK
+    "! validate เฉพาะ delivery type ใน constant parameter INBOUND_DOCTYPE
     "! ตอนสร้าง delivery ทุก item ห้ามใช้ storage location ของ EWM ตาม constant parameter PLANT_EWM และ SLOC_EWM
     "! การ validate อื่นทำเฉพาะเมื่อมี item ที่ต้อง replace เลข batch
     "! คืนข้อความ error ข้อแรกที่เจอ หรือค่าว่างเมื่อผ่าน
@@ -255,6 +258,11 @@ CLASS zcl_zime001 DEFINITION
       "! range ของ storage location จาก constant parameter
       tt_storage_location_range TYPE RANGE OF ty_storage_location,
 
+      "! delivery type ของ inbound delivery
+      ty_delivery_type    TYPE c LENGTH 4,
+      "! range ของ delivery type จาก constant parameter
+      tt_delivery_type_range TYPE RANGE OF ty_delivery_type,
+
       "! เลข batch ที่จำไว้ของ material ใน inbound delivery ที่กำลัง save
       BEGIN OF ty_delivery_batch,
         delivery_document TYPE c LENGTH 10,
@@ -304,6 +312,8 @@ CLASS zcl_zime001 DEFINITION
         plant_ewm             TYPE ztbc_param-param_name VALUE 'PLANT_EWM',
         "! storage location ที่ใช้ EWM
         sloc_ewm              TYPE ztbc_param-param_name VALUE 'SLOC_EWM',
+        "! delivery type ของ inbound delivery ที่ต้องสร้างเลข batch และ validate
+        inbound_doctype       TYPE ztbc_param-param_name VALUE 'INBOUND_DOCTYPE',
         "! additional parameter ของ goods receipt
         ext_goods_receipt     TYPE ztbc_param-param_ext  VALUE 'GOODS_RECEIPT',
       END OF gc_param.
@@ -405,6 +415,7 @@ CLASS zcl_zime001 DEFINITION
     "! เลข batch ของ inbound delivery อ้างอิง purchase order
     "! ประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter
     "! PO type ที่ถูก exclude ใน constant parameter ไม่ต้องสร้างเลข batch
+    "! delivery type ต้องอยู่ใน constant parameter
     "! material ต้องเปิดใช้ batch management
     "! material เดียวกันใน delivery เดียวกันได้ batch เดียวกับ item แรก
     "! delivery ที่ยังเป็นเลขชั่วคราวไม่ replace เลข batch
@@ -444,6 +455,14 @@ CLASS zcl_zime001 DEFINITION
                 is_delivery_head   TYPE ty_delivery_head
                 it_relevant_items  TYPE tt_delivery_item
       RETURNING VALUE(rv_message)  TYPE string.
+
+    "! delivery type อยู่ใน constant parameter INBOUND_DOCTYPE
+    "! ไม่เจอ parameter -> ไม่เข้าเงื่อนไข
+    "! @parameter iv_delivery_type | delivery type ของ inbound delivery
+    "! @parameter rv_relevant      | abap_true เมื่อ delivery type อยู่ใน constant parameter
+    CLASS-METHODS is_inbound_type_relevant
+      IMPORTING iv_delivery_type   TYPE ty_delivery_type
+      RETURNING VALUE(rv_relevant) TYPE abap_boolean.
 
     "! มี item ที่ใช้ storage location ของ EWM โดยไม่อ่าน DB
     "! แยกออกมาไว้ให้ test ส่ง item และ range เองได้
@@ -816,17 +835,23 @@ CLASS ZCL_ZIME001 IMPLEMENTATION.
     " ถ้าแก้วันที่แล้วยังไม่ save จะได้วันที่เดิม
     " check_inbound_delivery จะ validate เจอตอน save
     " อ่านไม่เจอหรือยังไม่มีวันที่ -> ไม่สร้างเลข batch
-    SELECT SINGLE ActualGoodsMovementDate
+    SELECT SINGLE ActualGoodsMovementDate, DeliveryDocumentType
       FROM I_DeliveryDocument WITH PRIVILEGED ACCESS
       WHERE DeliveryDocument = @is_batch_allocation-deliverydocument
-      INTO @DATA(lv_actual_date).
+      INTO @DATA(ls_delivery).
 
-    IF sy-subrc <> 0 OR lv_actual_date IS INITIAL.
+    IF sy-subrc <> 0 OR ls_delivery-ActualGoodsMovementDate IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    " delivery type ต้องอยู่ใน constant parameter
+    " เงื่อนไขเดียวกับ check_inbound_delivery
+    IF is_inbound_type_relevant( ls_delivery-DeliveryDocumentType ) = abap_false.
       RETURN.
     ENDIF.
 
     rv_batch = generate_batch_number( iv_material = is_batch_allocation-material
-                                      iv_date     = lv_actual_date ).
+                                      iv_date     = ls_delivery-ActualGoodsMovementDate ).
 
     " จำเลขไว้ให้ item ถัดไปของ material เดียวกันใน delivery เดียวกัน
     IF rv_batch IS NOT INITIAL.
@@ -889,6 +914,12 @@ CLASS ZCL_ZIME001 IMPLEMENTATION.
     " validate เฉพาะตอนสร้างและแก้ delivery
     IF iv_processing_mode <> gc_processing_mode-create
     AND iv_processing_mode <> gc_processing_mode-change.
+      RETURN.
+    ENDIF.
+
+    " validate เฉพาะ delivery type ใน constant parameter
+    " ไม่ผ่าน -> ไม่ validate ทุกข้อ รวมถึง storage location ของ EWM
+    IF is_inbound_type_relevant( is_delivery_head-deliverydocumenttype ) = abap_false.
       RETURN.
     ENDIF.
 
@@ -1025,6 +1056,29 @@ CLASS ZCL_ZIME001 IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD is_inbound_type_relevant.
+
+    DATA lr_delivery_type TYPE tt_delivery_type_range.
+
+    rv_relevant = abap_false.
+
+    " ไม่เจอ parameter -> ไม่เข้าเงื่อนไข
+    DATA(lo_param) = zcl_param=>create_instance( iv_company_code = ''
+                                                 iv_module_id    = gc_param-module_id ).
+
+    TRY.
+        lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
+                                       iv_param_name = gc_param-inbound_doctype
+                             IMPORTING et_range      = lr_delivery_type ).
+      CATCH zcx_param.
+        RETURN.
+    ENDTRY.
+
+    rv_relevant = xsdbool( iv_delivery_type IN lr_delivery_type ).
+
+  ENDMETHOD.
+
+
   METHOD has_ewm_storage_location.
 
     rv_found = abap_false.
@@ -1141,3 +1195,4 @@ CLASS ZCL_ZIME001 IMPLEMENTATION.
 
   ENDMETHOD.
 ENDCLASS.
+
