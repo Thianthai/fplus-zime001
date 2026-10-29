@@ -53,3 +53,22 @@
 | 2 | `ZCL_ZIME001=>generate_batch_number( )` อ่าน batch ล่าสุดจาก CDS แล้ว +1 | ✅ `38be34d` (2026-10-05) |
 | 3 | Custom Logic `YY1_AFTER_BATCH_NUMBER_INT` เรียก 2 method แล้วกำหนด `batch_out` | 🟨 ส่ง code แล้ว 2026-10-05 |
 | 4 | ~~ทดสอบ end-to-end + transport~~ | ⏸️ ไม่อยู่ในขอบเขตของเรา (ผู้ใช้สั่ง 2026-10-05) ฟังก์ชันนอลทดสอบเอง แล้วเราแก้ตาม issue ใน `05_issue_log.md` |
+
+## Constant parameter (Module `MM` · Application ID `IME001`)
+
+ค่าบน tenant พัฒนา 2026-10-29 (9 แถว) · ระบบปลายทางต้อง maintain ให้ครบก่อนใช้งาน
+
+| Parameter Name | Additional Parameter | Seq | Sign | Option | Low | ใช้ที่ | สถานะใน code |
+|---|---|---|---|---|---|---|---|
+| `INBOUND_DOCTYPE` | | 1 | I | EQ | EL | CASE_C และ validate VL31 / VL32 | ⬜ ยังไม่ใช้ (Q-58) |
+| `MOVEMENT_TYPE` | `GOODS_RECEIPT` | 1 | I | EQ | 101 | CASE_B และ validate MIGO | ✅ |
+| `PLANT_EWM` | | 1 | I | EQ | 1000 | validate VL31 (R-16) | ✅ |
+| `PO_DOCTYPE_STO` | | 1 | E | EQ | ZP25 | CASE_C และ validate VL31 / VL32 | ✅ |
+| `PO_DOCTYPE_STO` | | 2 | E | EQ | NBF2 | CASE_C และ validate VL31 / VL32 | ✅ |
+| `PRODUCTION_ORDER_TYPE` | | 1 | I | EQ | ZFG | CASE_A (เทียบ 3 ตัวแรก R-14) | ✅ |
+| `REF_DOC_TYPE` | | 1 | I | EQ | B | CASE_B · CASE_C | ✅ |
+| `REF_DOC_TYPE` | | 2 | I | EQ | F | CASE_B | ✅ |
+| `SLOC_EWM` | | 1 | I | EQ | 1000 | validate VL31 (R-16) | ✅ |
+
+- code อ่านทุกแถวเป็น range · maintain แถวเพิ่มไม่ต้องแก้ code
+- ไม่เจอ parameter -> case / การเช็คนั้นไม่ทำงาน (ระบบทำงานแบบ standard)
