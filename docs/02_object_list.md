@@ -20,7 +20,7 @@
 | Object | ชนิด | ไฟล์ | Status |
 |---|---|---|---|
 | `ZCL_ZIME001_LOG` | Class — public interface เท่ากับ version ที่ release 2026-10-05 (`36cd138`) · `ty_batch_allocation` + `write( is_batch_allocation iv_batch_in iv_batch_out_before iv_batch_out_after )` · method ว่าง · ไม่มี table · ไม่มี test class | `src/zcl_zime001_log.clas.abap` | ✅ `c085503` 2026-10-29 · description `Automatic Batch Creation Log` |
-| `ZCL_ZIME001_LOG` API state | APIS — C1 · Released · Use in Key User Apps · จะตั้ง Deprecated ใน transport ถัดไป | `src/zcl_zime001_log                     clas.apis.xml` | ✅ `c085503` |
+| `ZCL_ZIME001_LOG` API state | APIS — C1 · Released · Use in Key User Apps · **ยังไม่ตั้ง Deprecated** เผื่อใช้เก็บ log อีก · เช็คก่อนส่งมอบงาน (ดู issue log) | `src/zcl_zime001_log                     clas.apis.xml` | ✅ `c085503` |
 
 - **ห้ามลบ ห้ามเปลี่ยนเป็น Not Released และห้ามแก้ public interface** ATC (`CL_CI_ARS_COMPATIBILITY_CHECK` 020) ตรวจทั้ง Released และ Deprecated → ลบแล้วติด priority 1 และ block transport (เจอจริง 2026-10-29)
 - ลบได้ทางเดียวคือให้ SAP Support ลบ API ออกจาก snapshot ในทุกระบบที่ class ถูก transport ไปแล้ว
