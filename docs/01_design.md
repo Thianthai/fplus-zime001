@@ -60,7 +60,7 @@
 
 | Parameter Name | Additional Parameter | Seq | Sign | Option | Low | ใช้ที่ | สถานะใน code |
 |---|---|---|---|---|---|---|---|
-| `INBOUND_DOCTYPE` | | 1 | I | EQ | EL | CASE_C และ validate VL31 / VL32 | ⬜ ยังไม่ใช้ (Q-58) |
+| `INBOUND_DOCTYPE` | | 1 | I | EQ | EL | CASE_C และ validate VL31 / VL32 | ✅ (Q-58 `6c9e179`) |
 | `MOVEMENT_TYPE` | `GOODS_RECEIPT` | 1 | I | EQ | 101 | CASE_B และ validate MIGO | ✅ |
 | `PLANT_EWM` | | 1 | I | EQ | 1000 | validate VL31 (R-16) | ✅ |
 | `PO_DOCTYPE_STO` | | 1 | E | EQ | ZP25 | CASE_C และ validate VL31 / VL32 | ✅ |
