@@ -493,7 +493,9 @@ CLASS zcl_zime001 DEFINITION
 ENDCLASS.
 
 
-CLASS zcl_zime001 IMPLEMENTATION.
+
+CLASS ZCL_ZIME001 IMPLEMENTATION.
+
 
   METHOD is_valid_batch_format.
     rv_valid = check_batch_format( iv_batch        = iv_batch
@@ -873,6 +875,7 @@ CLASS zcl_zime001 IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD check_inbound_delivery.
 
     DATA lr_plant            TYPE tt_plant_range.
@@ -1049,6 +1052,7 @@ CLASS zcl_zime001 IMPLEMENTATION.
                                    iv_current_date = CONV d( |20{ iv_batch(2) }0101| ) ).
   ENDMETHOD.
 
+
   METHOD set_posting_date.
     gv_posting_date = iv_posting_date.
   ENDMETHOD.
@@ -1136,7 +1140,4 @@ CLASS zcl_zime001 IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
 ENDCLASS.
-
-
