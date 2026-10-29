@@ -13,12 +13,12 @@
 | `YY1_CREATE_GM_POSTING_DATE` | Custom Logic ของ BAdI `MMIM_CREATE_GM_POSTING_DATE` · เก็บ posting date (R-11) | — สำเนาใน `docs/07_log_analysis_case_b.md` | ✅ publish และทดสอบผ่าน 2026-10-12 |
 | `YY1_CHECK_MATDOC_ITEM` | Custom Logic ของ BAdI `BADI_MMIM_CHECK_MATDOC_ITEM` · ตรวจ batch ของ GR กับ posting date (R-11) | — สำเนาใน `docs/07_log_analysis_case_b.md` | ✅ publish และทดสอบผ่าน 2026-10-12 |
 | `YY1_SHP_DELIVERY_FINAL_CHECK` | Custom Logic ของ BAdI `LE_SHP_DELIVERY_FINAL_CHECK` · ตรวจ inbound delivery ก่อน save (R-10) | — key user ไม่ขึ้น git · สำเนาใน `docs/09_vl32_final_check.md` | ✅ publish 2026-10-12 (ผู้ใช้แจ้ง) · รอทดสอบ |
-| `YY1_AFTER_BATCH_NUMBER_INT` | Custom Logic ของ BAdI `LOBM_AFTER_BATCH_NUMBER_INT` | — key user ไม่ขึ้น git · สำเนาใน `docs/04_custom_logic.md` | 🟨 ส่ง code รอบ 4 2026-10-05 รอยืนยัน publish — เก็บ log อย่างเดียว ไม่แก้ `batch_out` · parameter `iv_batch_out` |
+| `YY1_AFTER_BATCH_NUMBER_INT` | Custom Logic ของ BAdI `LOBM_AFTER_BATCH_NUMBER_INT` | — key user ไม่ขึ้น git · สำเนาใน `docs/04_custom_logic.md` | ✅ publish 2026-10-29 · เอาส่วน log ออกแล้ว เหลือ `determine_case` + `get_batch_number` |
 
-## ชั่วคราว (R-02) — ลบก่อน transport
+## ชั่วคราว (R-02) — ✅ ลบแล้ว 2026-10-29 (`68f59a3`)
 
 | Object | ชนิด | ไฟล์ | Status |
 |---|---|---|---|
-| `ZIME001_LOG` | Database table — 1 row ต่อ 1 call ของ BAdI | `src/zime001_log.tabl.xml` | ✅ `220ac57` (2026-10-05) · `94dcdc1` SAP เติม `TDDAT` authorization group `CUS_DEV_SUP_DA` เอง · 43 field · `batch_in` `batch_out` `batch_out_after` `is_valid_format` + 35 field ของ BAdI · `invertedIndividualIndex` |
-| `ZCL_ZIME001_LOG` | Class — `write( )` INSERT ลง `ZIME001_LOG` · release C1 + Use in Key User Apps | `src/zcl_zime001_log.clas.abap` | ✅ `220ac57` (2026-10-05) · parameter `iv_batch_out` |
-| `ZCL_ZIME001_LOG` API state | APIS — C1 · Released · Use in Key User Apps · ลบก่อน transport (ต้องเปลี่ยนเป็น Not Released ก่อนลบ class) | `src/zcl_zime001_log                     clas.apis.xml` | ✅ `36cd138` |
+| `ZIME001_LOG` | Database table — 1 row ต่อ 1 call ของ BAdI | `src/zime001_log.tabl.xml` | 🗑️ ลบแล้ว `68f59a3` 2026-10-29 · ATC ไม่ผ่านเพราะ rename parameter หลัง release (ไม่ต้องแก้แล้ว) |
+| `ZCL_ZIME001_LOG` | Class — `write( )` INSERT ลง `ZIME001_LOG` · release C1 + Use in Key User Apps | `src/zcl_zime001_log.clas.abap` | 🗑️ ลบแล้ว `68f59a3` 2026-10-29 · ATC ไม่ผ่านเพราะ rename parameter หลัง release (ไม่ต้องแก้แล้ว) |
+| `ZCL_ZIME001_LOG` API state | APIS — C1 · Released · Use in Key User Apps · ลบก่อน transport (ต้องเปลี่ยนเป็น Not Released ก่อนลบ class) | `src/zcl_zime001_log                     clas.apis.xml` | 🗑️ ลบแล้ว `68f59a3` 2026-10-29 · ATC ไม่ผ่านเพราะ rename parameter หลัง release (ไม่ต้องแก้แล้ว) |
