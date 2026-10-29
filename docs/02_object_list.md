@@ -15,7 +15,17 @@
 | `YY1_SHP_DELIVERY_FINAL_CHECK` | Custom Logic ของ BAdI `LE_SHP_DELIVERY_FINAL_CHECK` · ตรวจ inbound delivery ก่อน save (R-10) | — key user ไม่ขึ้น git · สำเนาใน `docs/09_vl32_final_check.md` | ✅ publish 2026-10-12 (ผู้ใช้แจ้ง) · รอทดสอบ |
 | `YY1_AFTER_BATCH_NUMBER_INT` | Custom Logic ของ BAdI `LOBM_AFTER_BATCH_NUMBER_INT` | — key user ไม่ขึ้น git · สำเนาใน `docs/04_custom_logic.md` | ✅ publish 2026-10-29 · เอาส่วน log ออกแล้ว เหลือ `determine_case` + `get_batch_number` |
 
-## ชั่วคราว (R-02) — ✅ ลบแล้ว 2026-10-29 (`68f59a3`)
+## Class ที่คงไว้เพื่อความ compatible ของ API — ห้ามลบ
+
+| Object | ชนิด | ไฟล์ | Status |
+|---|---|---|---|
+| `ZCL_ZIME001_LOG` | Class — public interface เท่ากับ version ที่ release 2026-10-05 (`36cd138`) · `ty_batch_allocation` + `write( is_batch_allocation iv_batch_in iv_batch_out_before iv_batch_out_after )` · method ว่าง · ไม่มี table · ไม่มี test class | `src/zcl_zime001_log.clas.abap` | ✅ `c085503` 2026-10-29 · description `Automatic Batch Creation Log` |
+| `ZCL_ZIME001_LOG` API state | APIS — C1 · Released · Use in Key User Apps · จะตั้ง Deprecated ใน transport ถัดไป | `src/zcl_zime001_log                     clas.apis.xml` | ✅ `c085503` |
+
+- **ห้ามลบ ห้ามเปลี่ยนเป็น Not Released และห้ามแก้ public interface** ATC (`CL_CI_ARS_COMPATIBILITY_CHECK` 020) ตรวจทั้ง Released และ Deprecated → ลบแล้วติด priority 1 และ block transport (เจอจริง 2026-10-29)
+- ลบได้ทางเดียวคือให้ SAP Support ลบ API ออกจาก snapshot ในทุกระบบที่ class ถูก transport ไปแล้ว
+
+## ชั่วคราว (R-02) — ✅ ลบแล้ว 2026-10-29 (`68f59a3`) · class สร้างกลับใน `c085503` (ดูด้านบน)
 
 | Object | ชนิด | ไฟล์ | Status |
 |---|---|---|---|
