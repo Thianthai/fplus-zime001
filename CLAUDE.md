@@ -30,6 +30,13 @@ Custom Logic (key user) เรียก class ของ developer extensibility 
   เหตุผล: เป็น logic ของระบบ ถ้าติดสิทธิ์ของ user ที่สร้าง batch จะอ่านข้อมูลไม่ครบ
 - code ของ Custom Logic ไม่ขึ้น git — เก็บสำเนาไว้ใน `docs/` เพื่ออ้างอิง
 
+## `ZCL_ZIME001_LOG` — ห้ามลบ (ผู้ใช้สั่ง 2026-10-29)
+
+- เคย release C1 ไว้แล้วจึงอยู่ใน API snapshot `SAP Default` · ลบหรือเปลี่ยนเป็น Not Released -> ATC `CL_CI_ARS_COMPATIBILITY_CHECK` 020 priority 1 block transport (เจอจริง 2026-10-29 · ATC exemption ใช้ไม่ได้บน Public Cloud · Regenerate API ที่ object ถูกลบไปแล้วไม่ได้)
+- สร้างกลับเป็น class ว่างใน `c085503` · public interface ต้องเท่ากับ `36cd138` เสมอ: type `ty_batch_allocation` + `write( is_batch_allocation iv_batch_in iv_batch_out_before iv_batch_out_after )`
+- ถ้าจะใช้เก็บ log อีก: ห้ามแก้ signature เดิม · เพิ่มได้เฉพาะ method ใหม่หรือ parameter `OPTIONAL` · ต้องสร้าง table log ใหม่
+- **ก่อนส่งมอบงาน**: ถ้ายังไม่ได้ใช้ -> ตั้ง API state เป็น Deprecated แล้ว transport (ดู `docs/05_issue_log.md`)
+
 ## ของกลางที่ใช้
 
 | Object | Package | ใช้ทำอะไร |
