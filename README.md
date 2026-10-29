@@ -46,3 +46,4 @@ batch_out
 | [docs/08_log_analysis_case_c.md](docs/08_log_analysis_case_c.md) | วิเคราะห์ log ของ CASE_C |
 | [docs/09_vl32_final_check.md](docs/09_vl32_final_check.md) | R-06 validate VL32 ด้วย `LE_SHP_DELIVERY_FINAL_CHECK` |
 | [docs/10_inbound_delivery_messages.md](docs/10_inbound_delivery_messages.md) | error message ของ VL31 / VL32 และ MIGO สำหรับ spec |
+| [docs/11_transport_checklist.md](docs/11_transport_checklist.md) | checklist การ transport: object · ลำดับ import · constant parameter · smoke test |
