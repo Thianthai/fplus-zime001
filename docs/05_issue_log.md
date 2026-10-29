@@ -53,5 +53,5 @@
 - Q-58: param `INBOUND_DOCTYPE` = `I` `EQ` `EL` maintain แล้ว 2026-10-14 · รอออกแบบเช็ค delivery type ใน CASE_C และ `check_inbound_delivery`
 - แก้ ABAP Doc ของ method `get_batch_case_c` ที่ยังพูดถึง schedule line (ไม่กระทบการทำงาน)
 - ✅ 2026-10-29 ลบ log แล้ว (Custom Logic publish · `ZCL_ZIME001_LOG` Not Released แล้วลบ · ลบ `ZIME001_LOG`) · `68f59a3`
-- ⚠️ ATC 2026-10-29: `CL_CI_ARS_COMPATIBILITY_CHECK` / 020 ที่ package ZIME001 -> `Released API CLAS ZCL_ZIME001_LOG was deleted` (เทียบ API snapshot version 100 ของ IA5) · รอเลือกวิธีแก้
+- ⚠️ ATC 2026-10-29: `CL_CI_ARS_COMPATIBILITY_CHECK` / 020 ที่ package ZIME001 -> `Released API CLAS ZCL_ZIME001_LOG was deleted` (เทียบ API snapshot version 100 ของ IA5) · รอเลือกวิธีแก้ · 2026-10-29 ผู้ใช้เข้าแอป Manage API Snapshots ไม่ได้ -> ทางเลือก: ให้ admin ที่มีสิทธิ์สร้าง snapshot ใหม่ หรือขอ ATC exemption
 - ก่อน transport: รัน ATC ใหม่ · transport `ZBCPARAM` / `ZBCUTILITY` ก่อนหรือพร้อมกัน · Custom Logic ทั้ง 4 ตัว · maintain constant parameter `IME001` ที่ระบบปลายทาง · ทดสอบ Q-58 บน tenant
