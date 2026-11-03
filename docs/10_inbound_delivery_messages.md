@@ -47,10 +47,13 @@
 
 ตรวจทุกครั้งที่กด **Check** และ **Post** ทีละ item เฉพาะเมื่อครบทุกข้อ
 - item มี batch แล้ว (item ที่ยังไม่มี batch ระบบ standard ตรวจเอง)
+- PO ไม่ใช่ PO STO ตาม constant parameter `PO_DOCTYPE_STO` (ตอนนี้ ZP25 และ NBF2 · R-17)
 - ไม่มี inbound delivery
 - movement type อยู่ใน constant parameter `MOVEMENT_TYPE` / `GOODS_RECEIPT` (ตอนนี้ 101)
 - reference document type อยู่ใน constant parameter `REF_DOC_TYPE` (ตอนนี้ B = purchase order · F = production order)
 - material เป็น batch managed
+
+BAdI นี้ถูกเรียกตอน **Post Goods Receipt ใน VL32** ด้วย (ไม่ได้ส่งเลข inbound delivery มา) -> inbound delivery ที่ไม่ใช่ PO STO ก็ถูกตรวจตอน PGR
 
 ไม่เข้าเงื่อนไข (เช่น GI · transfer posting · cancel 102) ไม่ตรวจ · message type E · error ทำให้ post ไม่ได้
 
