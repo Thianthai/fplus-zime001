@@ -40,6 +40,8 @@
 
 ## จุดที่ค้าง (อัปเดต 2026-10-09)
 
+- ✅ 2026-11-03 transport รอบแรกขึ้นปลายทางแล้ว (ZBCPARAM · ZBCUTILITY · ZIME001 · Custom Logic 4 ตัว) · เหลือ maintain constant parameter และ smoke test ที่ปลายทาง (ดู `11_transport_checklist.md` ข้อ E)
+
 
 - **รอฟังก์ชันนอลทดสอบ** ด้วย user `CB9980000010` แล้ว export `ZIME001_LOG` มาเทียบ
   - ✅ CASE_A: CO02 (`2610090003`) และ Mass Processing (`2610090004` `2610090005`) ผ่าน 2026-10-09

@@ -18,10 +18,16 @@ Tenant ต้นทาง: **IA5/080** (developer extensibility: ADT) · **IA5/1
 | A6 | Custom Logic ทั้ง 4 ตัว Published (ตาราง C) | Custom Logic · 100 | ✅ 2026-10-29 |
 | A7 | `YY1_AFTER_BATCH_NUMBER_INT` เป็น version ที่ไม่มี log (ตรงกับ `docs/04_custom_logic.md`) | Custom Logic · 100 | ✅ 2026-10-29 |
 | A8 | ไม่มี Custom Logic อื่นของ BAdI เดียวกันที่จะทำงานซ้อน (เอา filter Created By ออกแล้วค้นด้วย BAdI ทั้ง 4 ตัว) | Custom Logic · 100 | ✅ 2026-11-03 เจอตัวเดียวทุก BAdI |
-| A9 | `ZBCPARAM` และ `ZBCUTILITY` พร้อม transport หรือมีอยู่ที่ระบบปลายทางแล้ว | ADT · 080 | ⬜ |
+| A9 | `ZBCPARAM` และ `ZBCUTILITY` พร้อม transport หรือมีอยู่ที่ระบบปลายทางแล้ว | ADT · 080 | ✅ 2026-11-03 transport ขึ้นปลายทางแล้ว |
 | A10 | ผลทดสอบของฟังก์ชันนอลผ่าน: R-14 · R-15 · R-16 · Q-58 · R-17 (✅ VL32 PGR PO STO 2026-11-03) · VL32 PGR ของ PO ที่ไม่ใช่ STO | tenant | ⬜ |
 
 ---
+
+## สถานะ transport รอบแรก (2026-11-03)
+
+- ✅ `ZBCPARAM` · `ZBCUTILITY` · ZIME001 developer transport · Custom Logic ทั้ง 4 ตัว transport ขึ้นปลายทางแล้ว (ผู้ใช้แจ้ง)
+- ⬜ E1 maintain constant parameter ที่ปลายทาง · ⬜ E3 smoke test ที่ปลายทาง
+- ⬜ F ตั้ง `ZCL_ZIME001_LOG` เป็น Deprecated ก่อนส่งมอบ ถ้ายังไม่ได้ใช้
 
 ## B. Developer transport (ADT · tenant 080)
 
