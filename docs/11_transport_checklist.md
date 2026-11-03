@@ -1,6 +1,6 @@
 # 11 — Transport Checklist
 
-อัปเดต 2026-10-29 · ใช้ทุกครั้งที่ transport ZIME001 ขึ้นระบบปลายทาง (test / production)
+อัปเดต 2026-11-03 · ใช้ทุกครั้งที่ transport ZIME001 ขึ้นระบบปลายทาง (test / production)
 
 Tenant ต้นทาง: **IA5/080** (developer extensibility: ADT) · **IA5/100** (key user extensibility: Custom Logic)
 
@@ -10,16 +10,16 @@ Tenant ต้นทาง: **IA5/080** (developer extensibility: ADT) · **IA5/1
 
 | # | เช็ค | ที่ไหน | สถานะ |
 |---|---|---|---|
-| A1 | ATC ของ package `ZIME001` ผ่าน ไม่มี priority 1 และ 2 | ADT · 080 | ✅ 2026-10-29 |
+| A1 | ATC ของ package `ZIME001` ผ่าน ไม่มี priority 1 และ 2 | ADT · 080 | ✅ 2026-11-03 (หลัง R-17) |
 | A2 | ABAP Unit ของ `ZCL_ZIME001` ผ่านครบ 46 ตัว | ADT · 080 | ✅ 2026-10-29 |
-| A3 | repo ตรงกับ tenant (push ล่าสุดตรวจแล้ว `c085503`) | git | ✅ |
+| A3 | repo ตรงกับ tenant (push ล่าสุดตรวจแล้ว `f7974db`) | git | ✅ |
 | A4 | `ZCL_ZIME001` API state = C1 · Released · Use in Key User Apps | ADT · 080 | ✅ |
 | A5 | `ZCL_ZIME001_LOG` API state = C1 · Released · Use in Key User Apps (**ห้ามลบ** ดู `CLAUDE.md`) | ADT · 080 | ✅ |
 | A6 | Custom Logic ทั้ง 4 ตัว Published (ตาราง C) | Custom Logic · 100 | ✅ 2026-10-29 |
 | A7 | `YY1_AFTER_BATCH_NUMBER_INT` เป็น version ที่ไม่มี log (ตรงกับ `docs/04_custom_logic.md`) | Custom Logic · 100 | ✅ 2026-10-29 |
 | A8 | ไม่มี Custom Logic อื่นของ BAdI เดียวกันที่จะทำงานซ้อน (เอา filter Created By ออกแล้วค้นด้วย BAdI ทั้ง 4 ตัว) | Custom Logic · 100 | ⬜ |
 | A9 | `ZBCPARAM` และ `ZBCUTILITY` พร้อม transport หรือมีอยู่ที่ระบบปลายทางแล้ว | ADT · 080 | ⬜ |
-| A10 | ผลทดสอบของฟังก์ชันนอลผ่าน: R-14 · R-15 · R-16 · Q-58 | tenant | ⬜ |
+| A10 | ผลทดสอบของฟังก์ชันนอลผ่าน: R-14 · R-15 · R-16 · Q-58 · R-17 (✅ VL32 PGR PO STO 2026-11-03) · VL32 PGR ของ PO ที่ไม่ใช่ STO | tenant | ⬜ |
 
 ---
 
@@ -97,6 +97,7 @@ Custom Logic เรียก `ZCL_ZIME001` และ `ZCL_ZIME001` เรีย�
 | 5 | VL31 | ไม่กรอก Actual GM Date | error `Actual goods movement date is required.` |
 | 6 | VL32 | กด Batch Creation แล้ว save | batch = YYMMDD ของ Actual GM Date + NNNN · save ได้ |
 | 7 | VL32 | delivery type อื่นที่ไม่อยู่ใน `INBOUND_DOCTYPE` | ไม่มี error จาก ZIME001 · ได้เลข standard |
+| 8 | VL32 | Post Goods Receipt ของ inbound delivery อ้างอิง PO STO | post ได้ ไม่ validate batch (R-17) |
 
 error message ทั้งหมดดู `docs/10_inbound_delivery_messages.md`
 
