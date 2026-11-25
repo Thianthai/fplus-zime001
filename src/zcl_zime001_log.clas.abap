@@ -69,12 +69,13 @@ CLASS zcl_zime001_log DEFINITION
 ENDCLASS.
 
 
-CLASS zcl_zime001_log IMPLEMENTATION.
+
+CLASS ZCL_ZIME001_LOG IMPLEMENTATION.
+
 
   METHOD write.
     " ไม่มี logic
     " class นี้คงไว้เพื่อความ compatible ของ API ที่ release แล้วเท่านั้น
     RETURN.
   ENDMETHOD.
-
 ENDCLASS.

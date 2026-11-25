@@ -130,7 +130,7 @@ CLASS zcl_zime001 DEFINITION
         "! BAdI ถูกเรียกตอน Check และใช้เลขเดิมตอน Post
         "! YYMMDD มาจาก posting date ที่ BAdI MMIM_CREATE_GM_POSTING_DATE ส่งมาก่อนจองเลข batch
         "! validate เลข batch กับ posting date ด้วย check_goods_receipt_item ตอน Check และ Post
-        "! PO type ที่ถูก exclude ใน constant parameter PO_DOCTYPE_STO ยังสร้างเลข batch แต่ไม่ validate
+        "! PO type ที่ไม่อยู่ใน constant parameter PO_DOCTYPE ยังสร้างเลข batch แต่ไม่ validate
         "! GR จาก App อื่นที่ส่งค่าเหมือนกันจะเข้า case นี้ด้วย
         b TYPE ty_case VALUE 'CASE_B',
         "! CASE_C inbound delivery อ้างอิง purchase order
@@ -139,7 +139,7 @@ CLASS zcl_zime001 DEFINITION
         "! ต้องมี inbound delivery และ purchase order
         "! delivery type ต้องอยู่ใน constant parameter INBOUND_DOCTYPE
         "! ประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter REF_DOC_TYPE
-        "! PO type ที่ถูก exclude ใน constant parameter PO_DOCTYPE_STO ไม่สร้างเลข batch
+        "! PO type ต้องอยู่ใน constant parameter PO_DOCTYPE
         "! material ต้องเปิดใช้ batch management ใน I_Product-IsBatchManagementRequired
         "! material เดียวกันใน delivery เดียวกันได้ batch เดียวกับ item แรก
         "! YYMMDD มาจาก actual goods movement date ของ delivery ใน I_DeliveryDocument-ActualGoodsMovementDate
@@ -226,7 +226,7 @@ CLASS zcl_zime001 DEFINITION
     "! ใช้กับ Custom Logic YY1_CHECK_MATDOC_ITEM ของ BAdI BADI_MMIM_CHECK_MATDOC_ITEM
     "! validate เฉพาะ item ที่เข้าเงื่อนไขของ goods receipt ที่ต้องสร้างเลข batch
     "! BAdI ถูกเรียกตอน Post Goods Receipt ของ inbound delivery ใน VL32 ด้วย
-    "! item ที่อ้างอิง PO STO ไม่ validate ให้ user แก้ batch เองได้
+    "! item ที่อ้างอิง PO ซึ่ง PO type ไม่อยู่ใน constant parameter PO_DOCTYPE ไม่ validate
     "! คืนข้อความ error หรือค่าว่างเมื่อผ่าน
     "! @parameter is_header  | header ของ material document
     "! @parameter is_item    | item ของ material document
@@ -310,8 +310,8 @@ CLASS zcl_zime001 DEFINITION
         movement_type         TYPE ztbc_param-param_name VALUE 'MOVEMENT_TYPE',
         "! ประเภทเอกสารอ้างอิงที่ต้องสร้างเลข batch
         ref_doc_type          TYPE ztbc_param-param_name VALUE 'REF_DOC_TYPE',
-        "! PO type ของ stock transport order ที่ไม่ต้องสร้างเลข batch
-        po_doctype_sto        TYPE ztbc_param-param_name VALUE 'PO_DOCTYPE_STO',
+        "! PO type ที่ต้องสร้างเลข batch และ validate ของ inbound delivery
+        po_doctype            TYPE ztbc_param-param_name VALUE 'PO_DOCTYPE',
         "! plant ที่ใช้ EWM
         plant_ewm             TYPE ztbc_param-param_name VALUE 'PLANT_EWM',
         "! storage location ที่ใช้ EWM
@@ -418,7 +418,7 @@ CLASS zcl_zime001 DEFINITION
 
     "! เลข batch ของ inbound delivery อ้างอิง purchase order
     "! ประเภทเอกสารอ้างอิงต้องอยู่ใน constant parameter
-    "! PO type ที่ถูก exclude ใน constant parameter ไม่ต้องสร้างเลข batch
+    "! PO type ต้องอยู่ใน constant parameter
     "! delivery type ต้องอยู่ใน constant parameter
     "! material ต้องเปิดใช้ batch management
     "! material เดียวกันใน delivery เดียวกันได้ batch เดียวกับ item แรก
@@ -441,7 +441,7 @@ CLASS zcl_zime001 DEFINITION
     "! item ที่ต้อง replace เลข batch
     "! อ้างอิง purchase order
     "! material เปิดใช้ batch management
-    "! PO type ไม่ถูก exclude ใน constant parameter PO_DOCTYPE_STO
+    "! PO type อยู่ใน constant parameter PO_DOCTYPE
     "! @parameter it_delivery_items | item ของ delivery
     "! @parameter rt_items          | item ที่ต้อง replace เลข batch
     CLASS-METHODS get_relevant_items
@@ -487,14 +487,13 @@ CLASS zcl_zime001 DEFINITION
       IMPORTING iv_batch        TYPE charg_d
       RETURNING VALUE(rv_valid) TYPE abap_boolean.
 
-    "! purchase order เป็น PO STO
-    "! PO type ถูก exclude ใน constant parameter PO_DOCTYPE_STO
-    "! ไม่เจอ parameter หรืออ่าน purchase order ไม่เจอ -> ไม่ใช่ PO STO
+    "! PO type ของ purchase order อยู่ใน constant parameter PO_DOCTYPE
+    "! purchase order ว่าง ไม่เจอ parameter หรืออ่าน purchase order ไม่เจอ -> ไม่เข้าเงื่อนไข
     "! @parameter iv_purchase_order | เลข purchase order
-    "! @parameter rv_sto            | abap_true เมื่อเป็น PO STO
-    CLASS-METHODS is_sto_purchase_order
-      IMPORTING iv_purchase_order TYPE ty_matdoc_item-purchaseorder
-      RETURNING VALUE(rv_sto)     TYPE abap_boolean.
+    "! @parameter rv_relevant       | abap_true เมื่อ PO type อยู่ใน constant parameter
+    CLASS-METHODS is_po_type_relevant
+      IMPORTING iv_purchase_order  TYPE ty_matdoc_item-purchaseorder
+      RETURNING VALUE(rv_relevant) TYPE abap_boolean.
 
     "! item เข้าเงื่อนไขของ goods receipt ที่ต้องสร้างเลข batch
     "! ไม่มี inbound delivery
@@ -805,7 +804,7 @@ CLASS ZCL_ZIME001 IMPLEMENTATION.
                              IMPORTING et_range      = lr_ref_doc_type ).
 
         lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
-                                       iv_param_name = gc_param-po_doctype_sto
+                                       iv_param_name = gc_param-po_doctype
                              IMPORTING et_range      = lr_po_type ).
       CATCH zcx_param.
         RETURN.
@@ -816,8 +815,7 @@ CLASS ZCL_ZIME001 IMPLEMENTATION.
     ENDIF.
 
     " BAdI ไม่ส่ง PO type มา จึงอ่านจาก purchase order เอง
-    " range ของ PO type เป็นแบบ exclude
-    " PO type ที่ถูก exclude จะไม่อยู่ใน range -> ไม่สร้างเลข batch
+    " PO type ไม่อยู่ใน constant parameter -> ไม่สร้างเลข batch
     SELECT SINGLE PurchaseOrderType
       FROM I_PurchaseOrderAPI01 WITH PRIVILEGED ACCESS
       WHERE PurchaseOrder = @is_batch_allocation-purchaseorder
@@ -996,15 +994,14 @@ CLASS ZCL_ZIME001 IMPLEMENTATION.
 
     TRY.
         lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
-                                       iv_param_name = gc_param-po_doctype_sto
+                                       iv_param_name = gc_param-po_doctype
                              IMPORTING et_range      = lr_po_type ).
       CATCH zcx_param.
         CLEAR rt_items.
         RETURN.
     ENDTRY.
 
-    " range ของ PO type เป็นแบบ exclude
-    " PO type ที่ถูก exclude หรืออ่าน purchase order ไม่เจอ -> ไม่ต้อง replace เลข batch
+    " PO type ไม่อยู่ใน constant parameter หรืออ่าน purchase order ไม่เจอ -> ไม่ต้อง replace เลข batch
     LOOP AT rt_items INTO DATA(ls_item).
 
       SELECT SINGLE PurchaseOrderType
@@ -1132,10 +1129,12 @@ CLASS ZCL_ZIME001 IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " PO STO ไม่ validate ให้ user แก้ batch เองได้
+    " อ้างอิง purchase order ที่ PO type ไม่อยู่ใน constant parameter -> ไม่ validate
     " ตอน Post Goods Receipt ใน VL32 BAdI ไม่ส่งเลข inbound delivery มา
     " item ของ inbound delivery จึงมาถึงที่นี่เหมือน goods receipt อ้างอิง purchase order
-    IF is_sto_purchase_order( is_item-purchaseorder ) = abap_true.
+    " ไม่มี purchase order เช่น goods receipt อ้างอิง production order -> validate ตามเดิม
+    IF is_item-purchaseorder IS NOT INITIAL
+    AND is_po_type_relevant( is_item-purchaseorder ) = abap_false.
       RETURN.
     ENDIF.
 
@@ -1152,29 +1151,29 @@ CLASS ZCL_ZIME001 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD is_sto_purchase_order.
+  METHOD is_po_type_relevant.
 
     DATA lr_po_type TYPE RANGE OF ty_po_type.
 
-    rv_sto = abap_false.
+    rv_relevant = abap_false.
 
     IF iv_purchase_order IS INITIAL.
       RETURN.
     ENDIF.
 
-    " ไม่เจอ parameter -> ไม่ใช่ PO STO
+    " ไม่เจอ parameter -> ไม่เข้าเงื่อนไข
     DATA(lo_param) = zcl_param=>create_instance( iv_company_code = ''
                                                  iv_module_id    = gc_param-module_id ).
 
     TRY.
         lo_param->get_range( EXPORTING iv_app_id     = gc_param-app_id
-                                       iv_param_name = gc_param-po_doctype_sto
+                                       iv_param_name = gc_param-po_doctype
                              IMPORTING et_range      = lr_po_type ).
       CATCH zcx_param.
         RETURN.
     ENDTRY.
 
-    " อ่าน purchase order ไม่เจอ -> ไม่ใช่ PO STO
+    " อ่าน purchase order ไม่เจอ -> ไม่เข้าเงื่อนไข
     SELECT SINGLE PurchaseOrderType
       FROM I_PurchaseOrderAPI01 WITH PRIVILEGED ACCESS
       WHERE PurchaseOrder = @iv_purchase_order
@@ -1184,9 +1183,7 @@ CLASS ZCL_ZIME001 IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " range ของ PO type เป็นแบบ exclude
-    " PO type ที่ถูก exclude จะไม่อยู่ใน range -> เป็น PO STO
-    rv_sto = xsdbool( lv_po_type NOT IN lr_po_type ).
+    rv_relevant = xsdbool( lv_po_type IN lr_po_type ).
 
   ENDMETHOD.
 
@@ -1254,5 +1251,6 @@ CLASS ZCL_ZIME001 IMPLEMENTATION.
 
   ENDMETHOD.
 ENDCLASS.
+
 
 
