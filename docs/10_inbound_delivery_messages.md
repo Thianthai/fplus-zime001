@@ -9,7 +9,7 @@
 **ข้อ 2 ถึง 5** ตรวจตอนกด Save เฉพาะเมื่อครบทุกข้อ
 - เป็น inbound delivery (`sddocumentcategory = 7` · บน tenant มี type `EL` `DIG` `HID` `ELR` `ECR` `ELST` · จะจำกัด type หรือไม่รอ OQ Q-58)
 - โหมดสร้าง (VL31) หรือแก้ (VL32) · โหมดแสดง (VL33) ไม่ตรวจ
-- มีอย่างน้อย 1 item ที่ต้อง replace เลข batch: อ้างอิง purchase order · material เป็น batch managed · PO type ไม่อยู่ใน constant parameter `PO_DOCTYPE_STO` (ตอนนี้ exclude ZP25 และ NBF2)
+- มีอย่างน้อย 1 item ที่ต้อง replace เลข batch: อ้างอิง purchase order · material เป็น batch managed · PO type อยู่ใน constant parameter `PO_DOCTYPE` (ตอนนี้ ZP11 · ZP12 · ZP13 · ZP23 · R-18) · PO type อื่น เช่น STO ไม่ตรวจ
 
 แสดงทีละ 1 error (ข้อแรกที่เจอตามลำดับในตาราง) · message type E
 
@@ -47,7 +47,7 @@
 
 ตรวจทุกครั้งที่กด **Check** และ **Post** ทีละ item เฉพาะเมื่อครบทุกข้อ
 - item มี batch แล้ว (item ที่ยังไม่มี batch ระบบ standard ตรวจเอง)
-- PO ไม่ใช่ PO STO ตาม constant parameter `PO_DOCTYPE_STO` (ตอนนี้ ZP25 และ NBF2 · R-17)
+- ถ้าอ้างอิง PO: PO type อยู่ใน constant parameter `PO_DOCTYPE` (ตอนนี้ ZP11 · ZP12 · ZP13 · ZP23 · R-18) · ไม่อ้างอิง PO (เช่น production order) ตรวจตามปกติ
 - ไม่มี inbound delivery
 - movement type อยู่ใน constant parameter `MOVEMENT_TYPE` / `GOODS_RECEIPT` (ตอนนี้ 101)
 - reference document type อยู่ใน constant parameter `REF_DOC_TYPE` (ตอนนี้ B = purchase order · F = production order)

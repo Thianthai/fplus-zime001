@@ -63,8 +63,11 @@
 | `INBOUND_DOCTYPE` | | 1 | I | EQ | EL | CASE_C และ validate VL31 / VL32 | ✅ (Q-58 `6c9e179`) |
 | `MOVEMENT_TYPE` | `GOODS_RECEIPT` | 1 | I | EQ | 101 | CASE_B และ validate MIGO | ✅ |
 | `PLANT_EWM` | | 1 | I | EQ | 1000 | validate VL31 (R-16) | ✅ |
-| `PO_DOCTYPE_STO` | | 1 | E | EQ | ZP25 | CASE_C และ validate VL31 / VL32 | ✅ |
-| `PO_DOCTYPE_STO` | | 2 | E | EQ | NBF2 | CASE_C และ validate VL31 / VL32 | ✅ |
+| `PO_DOCTYPE` | | 1 | I | EQ | ZP11 | CASE_C · validate VL31 / VL32 · validate PGR / MIGO (R-18) | ✅ |
+| `PO_DOCTYPE` | | 2 | I | EQ | ZP12 | เหมือนข้างบน | ✅ |
+| `PO_DOCTYPE` | | 3 | I | EQ | ZP13 | เหมือนข้างบน | ✅ |
+| `PO_DOCTYPE` | | 4 | I | EQ | ZP23 | เหมือนข้างบน | ✅ |
+| ~~`PO_DOCTYPE_STO`~~ | | | E | EQ | ZP25 · NBF2 | เลิกใช้ตั้งแต่ R-18 (`a1a5234`) ลบได้หลังทดสอบผ่าน | 🗑️ |
 | `PRODUCTION_ORDER_TYPE` | | 1 | I | EQ | ZFG | CASE_A (เทียบ 3 ตัวแรก R-14) | ✅ |
 | `REF_DOC_TYPE` | | 1 | I | EQ | B | CASE_B · CASE_C | ✅ |
 | `REF_DOC_TYPE` | | 2 | I | EQ | F | CASE_B | ✅ |

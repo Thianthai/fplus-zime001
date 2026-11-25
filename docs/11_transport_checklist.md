@@ -6,6 +6,12 @@ Tenant ต้นทาง: **IA5/080** (developer extensibility: ADT) · **IA5/1
 
 ---
 
+## ⚠️ Transport รอบ R-18 (`a1a5234` · 2026-11-25)
+
+- **maintain `PO_DOCTYPE` 4 แถว (ZP11 · ZP12 · ZP13 · ZP23) ที่ระบบปลายทางก่อนหรือพร้อม import** ไม่งั้น VL32 Batch Creation และการ validate หยุดทำงานทันที
+- หลัง import และทดสอบผ่าน: ลบแถว `PO_DOCTYPE_STO` ทั้งที่ dev และปลายทาง
+- transport เฉพาะ `CLAS ZCL_ZIME001` (`ZCL_ZIME001_LOG` แก้แค่ format ไม่จำเป็นต้องไปด้วย) · Custom Logic ไม่เปลี่ยน
+
 ## A. ก่อน release transport (ระบบต้นทาง)
 
 | # | เช็ค | ที่ไหน | สถานะ |
@@ -76,8 +82,10 @@ Custom Logic เรียก `ZCL_ZIME001` และ `ZCL_ZIME001` เรีย�
 | `INBOUND_DOCTYPE` | | 1 | I | EQ | EL |
 | `MOVEMENT_TYPE` | `GOODS_RECEIPT` | 1 | I | EQ | 101 |
 | `PLANT_EWM` | | 1 | I | EQ | 1000 |
-| `PO_DOCTYPE_STO` | | 1 | E | EQ | ZP25 |
-| `PO_DOCTYPE_STO` | | 2 | E | EQ | NBF2 |
+| `PO_DOCTYPE` | | 1 | I | EQ | ZP11 |
+| `PO_DOCTYPE` | | 2 | I | EQ | ZP12 |
+| `PO_DOCTYPE` | | 3 | I | EQ | ZP13 |
+| `PO_DOCTYPE` | | 4 | I | EQ | ZP23 |
 | `PRODUCTION_ORDER_TYPE` | | 1 | I | EQ | ZFG |
 | `REF_DOC_TYPE` | | 1 | I | EQ | B |
 | `REF_DOC_TYPE` | | 2 | I | EQ | F |
@@ -103,7 +111,7 @@ Custom Logic เรียก `ZCL_ZIME001` และ `ZCL_ZIME001` เรีย�
 | 5 | VL31 | ไม่กรอก Actual GM Date | error `Actual goods movement date is required.` |
 | 6 | VL32 | กด Batch Creation แล้ว save | batch = YYMMDD ของ Actual GM Date + NNNN · save ได้ |
 | 7 | VL32 | delivery type อื่นที่ไม่อยู่ใน `INBOUND_DOCTYPE` | ไม่มี error จาก ZIME001 · ได้เลข standard |
-| 8 | VL32 | Post Goods Receipt ของ inbound delivery อ้างอิง PO STO | post ได้ ไม่ validate batch (R-17) |
+| 8 | VL32 | Post Goods Receipt ของ inbound delivery อ้างอิง PO type ที่ไม่อยู่ใน `PO_DOCTYPE` เช่น STO | post ได้ ไม่ validate batch (R-17 · R-18) |
 
 error message ทั้งหมดดู `docs/10_inbound_delivery_messages.md`
 
